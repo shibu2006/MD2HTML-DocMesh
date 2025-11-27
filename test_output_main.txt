@@ -1,0 +1,58 @@
+
+> md-to-html-docmesh@0.0.0 test
+> vitest --run src/components/MainContent.test.tsx
+
+
+[1m[46m RUN [49m[22m [36mv4.0.14 [39m[90m/Users/malaya.mohapatra/POC/MD_TO_HTML_DOCMESH[39m
+
+ [31m❯[39m src/components/MainContent.test.tsx [2m([22m[2m7 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[32m 147[2mms[22m[39m
+[31m     [31m×[31m Property 33: Empty workspace shows empty state[39m[32m 15[2mms[22m[39m
+     [32m✓[39m Property 33 (inverse): Non-empty workspace shows active workspace[32m 125[2mms[22m[39m
+     [32m✓[39m should handle drag over event[32m 2[2mms[22m[39m
+     [32m✓[39m should handle drop event with valid markdown files[32m 2[2mms[22m[39m
+     [32m✓[39m should filter out non-markdown files on drop[32m 1[2mms[22m[39m
+     [32m✓[39m should not call onUpload when no valid markdown files are dropped[32m 1[2mms[22m[39m
+     [32m✓[39m should handle drag and drop on active workspace[32m 1[2mms[22m[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 1 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[41m[1m FAIL [22m[49m src/components/MainContent.test.tsx[2m > [22mMainContent Property-Based Tests[2m > [22mProperty 33: Empty workspace shows empty state
+[31m[1mError[22m: Property failed after 1 tests
+{ seed: 1548898039, path: "0", endOnFailure: true }
+Counterexample: ["editor"]
+Shrunk 0 time(s)
+
+Hint: Enable verbose mode in order to have the list of all failing values encountered during the run[39m
+[90m [2m❯[22m buildError node_modules/fast-check/lib/check/runner/utils/RunDetailsFormatter.js:[2m156:19[22m[39m
+[90m [2m❯[22m throwIfFailed node_modules/fast-check/lib/check/runner/utils/RunDetailsFormatter.js:[2m165:11[22m[39m
+[90m [2m❯[22m reportRunDetails node_modules/fast-check/lib/check/runner/utils/RunDetailsFormatter.js:[2m178:16[22m[39m
+[90m [2m❯[22m Proxy.assert node_modules/fast-check/lib/check/runner/Runner.js:[2m61:9[22m[39m
+[36m [2m❯[22m src/components/MainContent.test.tsx:[2m15:8[22m[39m
+    [90m 13| [39m  [90m// Validates: Requirements 14.4[39m
+    [90m 14| [39m  [34mit[39m([32m'Property 33: Empty workspace shows empty state'[39m[33m,[39m () [33m=>[39m {
+    [90m 15| [39m    fc[33m.[39m[34massert[39m(
+    [90m   | [39m       [31m^[39m
+    [90m 16| [39m      fc[33m.[39m[34mproperty[39m(
+    [90m 17| [39m        fc[33m.[39m[34mconstantFrom[39m([32m'editor'[39m [35mas[39m [35mconst[39m[33m,[39m [32m'preview'[39m [35mas[39m [35mconst[39m)[33m,[39m
+
+[31m[1mCaused by: AssertionError[22m: expected 'Select a markdown file from the sideb…' to contain 'Drag and drop a new file here'[39m
+
+Expected: [32m"[7mD[27mrag and drop a new file here"[39m
+Received: [31m"[7mSelect a markdown file from the sidebar or d[27mrag and drop a new file here[7m to generate HTML.[27m"[39m
+
+[36m [2m❯[22m src/components/MainContent.test.tsx:[2m39:47[22m[39m
+[90m [2m❯[22m Property.predicate node_modules/fast-check/lib/check/property/Property.js:[2m14:54[22m[39m
+[90m [2m❯[22m Property.run node_modules/fast-check/lib/check/property/Property.generic.js:[2m43:33[22m[39m
+[90m [2m❯[22m runIt node_modules/fast-check/lib/check/runner/Runner.js:[2m14:30[22m[39m
+[90m [2m❯[22m check node_modules/fast-check/lib/check/runner/Runner.js:[2m54:11[22m[39m
+[90m [2m❯[22m Proxy.assert node_modules/fast-check/lib/check/runner/Runner.js:[2m57:17[22m[39m
+[90m [2m❯[22m src/components/MainContent.test.tsx:[2m15:8[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯[22m[39m
+
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m6 passed[39m[22m[90m (7)[39m
+[2m   Start at [22m 22:39:39
+[2m   Duration [22m 570ms[2m (transform 48ms, setup 0ms, import 224ms, tests 147ms, environment 110ms)[22m
+

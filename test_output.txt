@@ -1,0 +1,56 @@
+
+> md-to-html-docmesh@0.0.0 test
+> vitest --run src/components/Preview.test.tsx
+
+
+[1m[46m RUN [49m[22m [36mv4.0.14 [39m[90m/Users/malaya.mohapatra/POC/MD_TO_HTML_DOCMESH[39m
+
+ [31m❯[39m src/components/Preview.test.tsx [2m([22m[2m2 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[32m 97[2mms[22m[39m
+     [32m✓[39m Property 14: Theme selection updates preview[32m 83[2mms[22m[39m
+[31m     [31m×[31m Property 21: TOC top position placement[39m[32m 13[2mms[22m[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 1 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[41m[1m FAIL [22m[49m src/components/Preview.test.tsx[2m > [22mPreview Property-Based Tests[2m > [22mProperty 21: TOC top position placement
+[31m[1mError[22m: Property failed after 1 tests
+{ seed: 163272333, path: "0:0:0:0:0:0:0:0:0:0:0:0:0", endOnFailure: true }
+Counterexample: [[{"level":2,"text":"    0"}]]
+Shrunk 12 time(s)
+
+Hint: Enable verbose mode in order to have the list of all failing values encountered during the run[39m
+[90m [2m❯[22m buildError node_modules/fast-check/lib/check/runner/utils/RunDetailsFormatter.js:[2m156:19[22m[39m
+[90m [2m❯[22m throwIfFailed node_modules/fast-check/lib/check/runner/utils/RunDetailsFormatter.js:[2m165:11[22m[39m
+[90m [2m❯[22m reportRunDetails node_modules/fast-check/lib/check/runner/utils/RunDetailsFormatter.js:[2m178:16[22m[39m
+[90m [2m❯[22m Proxy.assert node_modules/fast-check/lib/check/runner/Runner.js:[2m61:9[22m[39m
+[36m [2m❯[22m src/components/Preview.test.tsx:[2m81:8[22m[39m
+    [90m 79| [39m  [90m// Validates: Requirements 6.5[39m
+    [90m 80| [39m  [34mit[39m([32m'Property 21: TOC top position placement'[39m[33m,[39m () [33m=>[39m {
+    [90m 81| [39m    fc[33m.[39m[34massert[39m(
+    [90m   | [39m       [31m^[39m
+    [90m 82| [39m      fc[33m.[39m[34mproperty[39m(
+    [90m 83| [39m        fc[33m.[39m[34marray[39m(
+
+[31m[1mCaused by: AssertionError[22m: expected null to be truthy[39m
+
+[32m- Expected:[39m 
+true
+
+[31m+ Received:[39m 
+null
+
+[36m [2m❯[22m src/components/Preview.test.tsx:[2m144:28[22m[39m
+[90m [2m❯[22m Property.predicate node_modules/fast-check/lib/check/property/Property.js:[2m14:54[22m[39m
+[90m [2m❯[22m Property.run node_modules/fast-check/lib/check/property/Property.generic.js:[2m43:33[22m[39m
+[90m [2m❯[22m runIt node_modules/fast-check/lib/check/runner/Runner.js:[2m14:30[22m[39m
+[90m [2m❯[22m check node_modules/fast-check/lib/check/runner/Runner.js:[2m54:11[22m[39m
+[90m [2m❯[22m Proxy.assert node_modules/fast-check/lib/check/runner/Runner.js:[2m57:17[22m[39m
+[90m [2m❯[22m src/components/Preview.test.tsx:[2m81:8[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯[22m[39m
+
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m1 passed[39m[22m[90m (2)[39m
+[2m   Start at [22m 19:38:31
+[2m   Duration [22m 595ms[2m (transform 57ms, setup 0ms, import 267ms, tests 97ms, environment 119ms)[22m
+

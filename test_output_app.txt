@@ -1,0 +1,715 @@
+
+> md-to-html-docmesh@0.0.0 test
+> vitest --run src/App.integration.test.tsx
+
+
+[1m[46m RUN [49m[22m [36mv4.0.14 [39m[90m/Users/malaya.mohapatra/POC/MD_TO_HTML_DOCMESH[39m
+
+ [31m❯[39m src/App.integration.test.tsx [2m([22m[2m5 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[33m 2286[2mms[22m[39m
+       [33m[2m✓[22m[39m should display all uploaded files in the file list with filename, size, and date [33m 324[2mms[22m[39m
+       [33m[2m✓[22m[39m should set clicked file as active and display its content [33m 331[2mms[22m[39m
+       [32m✓[39m should remove file from workspace when delete button is clicked[32m 141[2mms[22m[39m
+[31m       [31m×[31m should display active file content in editor textarea[39m[33m 1271[2mms[22m[39m
+       [32m✓[39m should render markdown content as HTML in preview mode[32m 219[2mms[22m[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 1 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[41m[1m FAIL [22m[49m src/App.integration.test.tsx[2m > [22mApp Integration Tests[2m > [22mProperty 9: Editor displays active file content[2m > [22mshould display active file content in editor textarea
+[31m[1mError[22m: Property failed after 2 tests
+{ seed: -1503631957, path: "1:0:0:0:0:0:0:0:0:0:0:0:0", endOnFailure: true }
+Counterexample: [{"name":"a.md","content":"          "}]
+Shrunk 12 time(s)
+
+Hint: Enable verbose mode in order to have the list of all failing values encountered during the run[39m
+[90m [2m❯[22m buildError node_modules/fast-check/lib/check/runner/utils/RunDetailsFormatter.js:[2m156:19[22m[39m
+[90m [2m❯[22m asyncThrowIfFailed node_modules/fast-check/lib/check/runner/utils/RunDetailsFormatter.js:[2m170:11[22m[39m
+
+[31m[1mCaused by: TestingLibraryElementError[22m[39m: Found multiple elements with the role "button" and name `/switch to editor view/i`
+
+Here are the matching elements:
+
+Ignored nodes: comments, script, style
+[36m<button[39m
+  [33maria-label[39m=[32m"Switch to editor view"[39m
+  [33maria-pressed[39m=[32m"true"[39m
+  [33mclass[39m=[32m"px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-200 bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-sm"[39m
+[36m>[39m
+  [36m<svg[39m
+    [33maria-hidden[39m=[32m"true"[39m
+    [33mclass[39m=[32m"lucide lucide-file-text w-4 h-4 inline mr-1.5"[39m
+    [33mfill[39m=[32m"none"[39m
+    [33mheight[39m=[32m"24"[39m
+    [33mstroke[39m=[32m"currentColor"[39m
+    [33mstroke-linecap[39m=[32m"round"[39m
+    [33mstroke-linejoin[39m=[32m"round"[39m
+    [33mstroke-width[39m=[32m"2"[39m
+    [33mviewBox[39m=[32m"0 0 24 24"[39m
+    [33mwidth[39m=[32m"24"[39m
+    [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+  [36m>[39m
+    [36m<path[39m
+      [33md[39m=[32m"M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"[39m
+    [36m/>[39m
+    [36m<path[39m
+      [33md[39m=[32m"M14 2v5a1 1 0 0 0 1 1h5"[39m
+    [36m/>[39m
+    [36m<path[39m
+      [33md[39m=[32m"M10 9H8"[39m
+    [36m/>[39m
+    [36m<path[39m
+      [33md[39m=[32m"M16 13H8"[39m
+    [36m/>[39m
+    [36m<path[39m
+      [33md[39m=[32m"M16 17H8"[39m
+    [36m/>[39m
+  [36m</svg>[39m
+  [0mEditor[0m
+[36m</button>[39m
+
+Ignored nodes: comments, script, style
+[36m<button[39m
+  [33maria-label[39m=[32m"Switch to editor view"[39m
+  [33maria-pressed[39m=[32m"false"[39m
+  [33mclass[39m=[32m"px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-200 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"[39m
+[36m>[39m
+  [36m<svg[39m
+    [33maria-hidden[39m=[32m"true"[39m
+    [33mclass[39m=[32m"lucide lucide-file-text w-4 h-4 inline mr-1.5"[39m
+    [33mfill[39m=[32m"none"[39m
+    [33mheight[39m=[32m"24"[39m
+    [33mstroke[39m=[32m"currentColor"[39m
+    [33mstroke-linecap[39m=[32m"round"[39m
+    [33mstroke-linejoin[39m=[32m"round"[39m
+    [33mstroke-width[39m=[32m"2"[39m
+    [33mviewBox[39m=[32m"0 0 24 24"[39m
+    [33mwidth[39m=[32m"24"[39m
+    [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+  [36m>[39m
+    [36m<path[39m
+      [33md[39m=[32m"M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"[39m
+    [36m/>[39m
+    [36m<path[39m
+      [33md[39m=[32m"M14 2v5a1 1 0 0 0 1 1h5"[39m
+    [36m/>[39m
+    [36m<path[39m
+      [33md[39m=[32m"M10 9H8"[39m
+    [36m/>[39m
+    [36m<path[39m
+      [33md[39m=[32m"M16 13H8"[39m
+    [36m/>[39m
+    [36m<path[39m
+      [33md[39m=[32m"M16 17H8"[39m
+    [36m/>[39m
+  [36m</svg>[39m
+  [0mEditor[0m
+[36m</button>[39m
+
+Ignored nodes: comments, script, style
+[36m<button[39m
+  [33maria-label[39m=[32m"Switch to editor view"[39m
+  [33maria-pressed[39m=[32m"false"[39m
+  [33mclass[39m=[32m"px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-200 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"[39m
+[36m>[39m
+  [36m<svg[39m
+    [33maria-hidden[39m=[32m"true"[39m
+    [33mclass[39m=[32m"lucide lucide-file-text w-4 h-4 inline mr-1.5"[39m
+    [33mfill[39m=[32m"none"[39m
+    [33mheight[39m=[32m"24"[39m
+    [33mstroke[39m=[32m"currentColor"[39m
+    [33mstroke-linecap[39m=[32m"round"[39m
+    [33mstroke-linejoin[39m=[32m"round"[39m
+    [33mstroke-width[39m=[32m"2"[39m
+    [33mviewBox[39m=[32m"0 0 24 24"[39m
+    [33mwidth[39m=[32m"24"[39m
+    [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+  [36m>[39m
+    [36m<path[39m
+      [33md[39m=[32m"M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"[39m
+    [36m/>[39m
+    [36m<path[39m
+      [33md[39m=[32m"M14 2v5a1 1 0 0 0 1 1h5"[39m
+    [36m/>[39m
+    [36m<path[39m
+      [33md[39m=[32m"M10 9H8"[39m
+    [36m/>[39m
+    [36m<path[39m
+      [33md[39m=[32m"M16 13H8"[39m
+    [36m/>[39m
+    [36m<path[39m
+      [33md[39m=[32m"M16 17H8"[39m
+    [36m/>[39m
+  [36m</svg>[39m
+  [0mEditor[0m
+[36m</button>[39m
+
+Ignored nodes: comments, script, style
+[36m<button[39m
+  [33maria-label[39m=[32m"Switch to editor view"[39m
+  [33maria-pressed[39m=[32m"false"[39m
+  [33mclass[39m=[32m"px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-200 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"[39m
+[36m>[39m
+  [36m<svg[39m
+    [33maria-hidden[39m=[32m"true"[39m
+    [33mclass[39m=[32m"lucide lucide-file-text w-4 h-4 inline mr-1.5"[39m
+    [33mfill[39m=[32m"none"[39m
+    [33mheight[39m=[32m"24"[39m
+    [33mstroke[39m=[32m"currentColor"[39m
+    [33mstroke-linecap[39m=[32m"round"[39m
+    [33mstroke-linejoin[39m=[32m"round"[39m
+    [33mstroke-width[39m=[32m"2"[39m
+    [33mviewBox[39m=[32m"0 0 24 24"[39m
+    [33mwidth[39m=[32m"24"[39m
+    [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+  [36m>[39m
+    [36m<path[39m
+      [33md[39m=[32m"M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"[39m
+    [36m/>[39m
+    [36m<path[39m
+      [33md[39m=[32m"M14 2v5a1 1 0 0 0 1 1h5"[39m
+    [36m/>[39m
+    [36m<path[39m
+      [33md[39m=[32m"M10 9H8"[39m
+    [36m/>[39m
+    [36m<path[39m
+      [33md[39m=[32m"M16 13H8"[39m
+    [36m/>[39m
+    [36m<path[39m
+      [33md[39m=[32m"M16 17H8"[39m
+    [36m/>[39m
+  [36m</svg>[39m
+  [0mEditor[0m
+[36m</button>[39m
+
+Ignored nodes: comments, script, style
+[36m<button[39m
+  [33maria-label[39m=[32m"Switch to editor view"[39m
+  [33maria-pressed[39m=[32m"false"[39m
+  [33mclass[39m=[32m"px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-200 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"[39m
+[36m>[39m
+  [36m<svg[39m
+    [33maria-hidden[39m=[32m"true"[39m
+    [33mclass[39m=[32m"lucide lucide-file-text w-4 h-4 inline mr-1.5"[39m
+    [33mfill[39m=[32m"none"[39m
+    [33mheight[39m=[32m"24"[39m
+    [33mstroke[39m=[32m"currentColor"[39m
+    [33mstroke-linecap[39m=[32m"round"[39m
+    [33mstroke-linejoin[39m=[32m"round"[39m
+    [33mstroke-width[39m=[32m"2"[39m
+    [33mviewBox[39m=[32m"0 0 24 24"[39m
+    [33mwidth[39m=[32m"24"[39m
+    [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+  [36m>[39m
+    [36m<path[39m
+      [33md[39m=[32m"M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"[39m
+    [36m/>[39m
+    [36m<path[39m
+      [33md[39m=[32m"M14 2v5a1 1 0 0 0 1 1h5"[39m
+    [36m/>[39m
+    [36m<path[39m
+      [33md[39m=[32m"M10 9H8"[39m
+    [36m/>[39m
+    [36m<path[39m
+      [33md[39m=[32m"M16 13H8"[39m
+    [36m/>[39m
+    [36m<path[39m
+      [33md[39m=[32m"M16 17H8"[39m
+    [36m/>[39m
+  [36m</svg>[39m
+  [0mEditor[0m
+[36m</button>[39m
+
+Ignored nodes: comments, script, style
+[36m<button[39m
+  [33maria-label[39m=[32m"Switch to editor view"[39m
+  [33maria-pressed[39m=[32m"false"[39m
+  [33mclass[39m=[32m"px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-200 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"[39m
+[36m>[39m
+  [36m<svg[39m
+    [33maria-hidden[39m=[32m"true"[39m
+    [33mclass[39m=[32m"lucide lucide-file-text w-4 h-4 inline mr-1.5"[39m
+    [33mfill[39m=[32m"none"[39m
+    [33mheight[39m=[32m"24"[39m
+    [33mstroke[39m=[32m"currentColor"[39m
+    [33mstroke-linecap[39m=[32m"round"[39m
+    [33mstroke-linejoin[39m=[32m"round"[39m
+    [33mstroke-width[39m=[32m"2"[39m
+    [33mviewBox[39m=[32m"0 0 24 24"[39m
+    [33mwidth[39m=[32m"24"[39m
+    [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+  [36m>[39m
+    [36m<path[39m
+      [33md[39m=[32m"M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"[39m
+    [36m/>[39m
+    [36m<path[39m
+      [33md[39m=[32m"M14 2v5a1 1 0 0 0 1 1h5"[39m
+    [36m/>[39m
+    [36m<path[39m
+      [33md[39m=[32m"M10 9H8"[39m
+    [36m/>[39m
+    [36m<path[39m
+      [33md[39m=[32m"M16 13H8"[39m
+    [36m/>[39m
+    [36m<path[39m
+      [33md[39m=[32m"M16 17H8"[39m
+    [36m/>[39m
+  [36m</svg>[39m
+  [0mEditor[0m
+[36m</button>[39m
+
+Ignored nodes: comments, script, style
+[36m<button[39m
+  [33maria-label[39m=[32m"Switch to editor view"[39m
+  [33maria-pressed[39m=[32m"false"[39m
+  [33mclass[39m=[32m"px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-200 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"[39m
+[36m>[39m
+  [36m<svg[39m
+    [33maria-hidden[39m=[32m"true"[39m
+    [33mclass[39m=[32m"lucide lucide-file-text w-4 h-4 inline mr-1.5"[39m
+    [33mfill[39m=[32m"none"[39m
+    [33mheight[39m=[32m"24"[39m
+    [33mstroke[39m=[32m"currentColor"[39m
+    [33mstroke-linecap[39m=[32m"round"[39m
+    [33mstroke-linejoin[39m=[32m"round"[39m
+    [33mstroke-width[39m=[32m"2"[39m
+    [33mviewBox[39m=[32m"0 0 24 24"[39m
+    [33mwidth[39m=[32m"24"[39m
+    [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+  [36m>[39m
+    [36m<path[39m
+      [33md[39m=[32m"M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"[39m
+    [36m/>[39m
+    [36m<path[39m
+      [33md[39m=[32m"M14 2v5a1 1 0 0 0 1 1h5"[39m
+    [36m/>[39m
+    [36m<path[39m
+      [33md[39m=[32m"M10 9H8"[39m
+    [36m/>[39m
+    [36m<path[39m
+      [33md[39m=[32m"M16 13H8"[39m
+    [36m/>[39m
+    [36m<path[39m
+      [33md[39m=[32m"M16 17H8"[39m
+    [36m/>[39m
+  [36m</svg>[39m
+  [0mEditor[0m
+[36m</button>[39m
+
+Ignored nodes: comments, script, style
+[36m<button[39m
+  [33maria-label[39m=[32m"Switch to editor view"[39m
+  [33maria-pressed[39m=[32m"false"[39m
+  [33mclass[39m=[32m"px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-200 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"[39m
+[36m>[39m
+  [36m<svg[39m
+    [33maria-hidden[39m=[32m"true"[39m
+    [33mclass[39m=[32m"lucide lucide-file-text w-4 h-4 inline mr-1.5"[39m
+    [33mfill[39m=[32m"none"[39m
+    [33mheight[39m=[32m"24"[39m
+    [33mstroke[39m=[32m"currentColor"[39m
+    [33mstroke-linecap[39m=[32m"round"[39m
+    [33mstroke-linejoin[39m=[32m"round"[39m
+    [33mstroke-width[39m=[32m"2"[39m
+    [33mviewBox[39m=[32m"0 0 24 24"[39m
+    [33mwidth[39m=[32m"24"[39m
+    [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+  [36m>[39m
+    [36m<path[39m
+      [33md[39m=[32m"M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"[39m
+    [36m/>[39m
+    [36m<path[39m
+      [33md[39m=[32m"M14 2v5a1 1 0 0 0 1 1h5"[39m
+    [36m/>[39m
+    [36m<path[39m
+      [33md[39m=[32m"M10 9H8"[39m
+    [36m/>[39m
+    [36m<path[39m
+      [33md[39m=[32m"M16 13H8"[39m
+    [36m/>[39m
+    [36m<path[39m
+      [33md[39m=[32m"M16 17H8"[39m
+    [36m/>[39m
+  [36m</svg>[39m
+  [0mEditor[0m
+[36m</button>[39m
+
+Ignored nodes: comments, script, style
+[36m<button[39m
+  [33maria-label[39m=[32m"Switch to editor view"[39m
+  [33maria-pressed[39m=[32m"false"[39m
+  [33mclass[39m=[32m"px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-200 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"[39m
+[36m>[39m
+  [36m<svg[39m
+    [33maria-hidden[39m=[32m"true"[39m
+    [33mclass[39m=[32m"lucide lucide-file-text w-4 h-4 inline mr-1.5"[39m
+    [33mfill[39m=[32m"none"[39m
+    [33mheight[39m=[32m"24"[39m
+    [33mstroke[39m=[32m"currentColor"[39m
+    [33mstroke-linecap[39m=[32m"round"[39m
+    [33mstroke-linejoin[39m=[32m"round"[39m
+    [33mstroke-width[39m=[32m"2"[39m
+    [33mviewBox[39m=[32m"0 0 24 24"[39m
+    [33mwidth[39m=[32m"24"[39m
+    [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+  [36m>[39m
+    [36m<path[39m
+      [33md[39m=[32m"M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"[39m
+    [36m/>[39m
+    [36m<path[39m
+      [33md[39m=[32m"M14 2v5a1 1 0 0 0 1 1h5"[39m
+    [36m/>[39m
+    [36m<path[39m
+      [33md[39m=[32m"M10 9H8"[39m
+    [36m/>[39m
+    [36m<path[39m
+      [33md[39m=[32m"M16 13H8"[39m
+    [36m/>[39m
+    [36m<path[39m
+      [33md[39m=[32m"M16 17H8"[39m
+    [36m/>[39m
+  [36m</svg>[39m
+  [0mEditor[0m
+[36m</button>[39m
+
+Ignored nodes: comments, script, style
+[36m<button[39m
+  [33maria-label[39m=[32m"Switch to editor view"[39m
+  [33maria-pressed[39m=[32m"false"[39m
+  [33mclass[39m=[32m"px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-200 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"[39m
+[36m>[39m
+  [36m<svg[39m
+    [33maria-hidden[39m=[32m"true"[39m
+    [33mclass[39m=[32m"lucide lucide-file-text w-4 h-4 inline mr-1.5"[39m
+    [33mfill[39m=[32m"none"[39m
+    [33mheight[39m=[32m"24"[39m
+    [33mstroke[39m=[32m"currentColor"[39m
+    [33mstroke-linecap[39m=[32m"round"[39m
+    [33mstroke-linejoin[39m=[32m"round"[39m
+    [33mstroke-width[39m=[32m"2"[39m
+    [33mviewBox[39m=[32m"0 0 24 24"[39m
+    [33mwidth[39m=[32m"24"[39m
+    [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+  [36m>[39m
+    [36m<path[39m
+      [33md[39m=[32m"M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"[39m
+    [36m/>[39m
+    [36m<path[39m
+      [33md[39m=[32m"M14 2v5a1 1 0 0 0 1 1h5"[39m
+    [36m/>[39m
+    [36m<path[39m
+      [33md[39m=[32m"M10 9H8"[39m
+    [36m/>[39m
+    [36m<path[39m
+      [33md[39m=[32m"M16 13H8"[39m
+    [36m/>[39m
+    [36m<path[39m
+      [33md[39m=[32m"M16 17H8"[39m
+    [36m/>[39m
+  [36m</svg>[39m
+  [0mEditor[0m
+[36m</button>[39m
+
+Ignored nodes: comments, script, style
+[36m<button[39m
+  [33maria-label[39m=[32m"Switch to editor view"[39m
+  [33maria-pressed[39m=[32m"false"[39m
+  [33mclass[39m=[32m"px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-200 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"[39m
+[36m>[39m
+  [36m<svg[39m
+    [33maria-hidden[39m=[32m"true"[39m
+    [33mclass[39m=[32m"lucide lucide-file-text w-4 h-4 inline mr-1.5"[39m
+    [33mfill[39m=[32m"none"[39m
+    [33mheight[39m=[32m"24"[39m
+    [33mstroke[39m=[32m"currentColor"[39m
+    [33mstroke-linecap[39m=[32m"round"[39m
+    [33mstroke-linejoin[39m=[32m"round"[39m
+    [33mstroke-width[39m=[32m"2"[39m
+    [33mviewBox[39m=[32m"0 0 24 24"[39m
+    [33mwidth[39m=[32m"24"[39m
+    [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+  [36m>[39m
+    [36m<path[39m
+      [33md[39m=[32m"M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"[39m
+    [36m/>[39m
+    [36m<path[39m
+      [33md[39m=[32m"M14 2v5a1 1 0 0 0 1 1h5"[39m
+    [36m/>[39m
+    [36m<path[39m
+      [33md[39m=[32m"M10 9H8"[39m
+    [36m/>[39m
+    [36m<path[39m
+      [33md[39m=[32m"M16 13H8"[39m
+    [36m/>[39m
+    [36m<path[39m
+      [33md[39m=[32m"M16 17H8"[39m
+    [36m/>[39m
+  [36m</svg>[39m
+  [0mEditor[0m
+[36m</button>[39m
+
+Ignored nodes: comments, script, style
+[36m<button[39m
+  [33maria-label[39m=[32m"Switch to editor view"[39m
+  [33maria-pressed[39m=[32m"false"[39m
+  [33mclass[39m=[32m"px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-200 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"[39m
+[36m>[39m
+  [36m<svg[39m
+    [33maria-hidden[39m=[32m"true"[39m
+    [33mclass[39m=[32m"lucide lucide-file-text w-4 h-4 inline mr-1.5"[39m
+    [33mfill[39m=[32m"none"[39m
+    [33mheight[39m=[32m"24"[39m
+    [33mstroke[39m=[32m"currentColor"[39m
+    [33mstroke-linecap[39m=[32m"round"[39m
+    [33mstroke-linejoin[39m=[32m"round"[39m
+    [33mstroke-width[39m=[32m"2"[39m
+    [33mviewBox[39m=[32m"0 0 24 24"[39m
+    [33mwidth[39m=[32m"24"[39m
+    [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+  [36m>[39m
+    [36m<path[39m
+      [33md[39m=[32m"M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"[39m
+    [36m/>[39m
+    [36m<path[39m
+      [33md[39m=[32m"M14 2v5a1 1 0 0 0 1 1h5"[39m
+    [36m/>[39m
+    [36m<path[39m
+      [33md[39m=[32m"M10 9H8"[39m
+    [36m/>[39m
+    [36m<path[39m
+      [33md[39m=[32m"M16 13H8"[39m
+    [36m/>[39m
+    [36m<path[39m
+      [33md[39m=[32m"M16 17H8"[39m
+    [36m/>[39m
+  [36m</svg>[39m
+  [0mEditor[0m
+[36m</button>[39m
+
+Ignored nodes: comments, script, style
+[36m<button[39m
+  [33maria-label[39m=[32m"Switch to editor view"[39m
+  [33maria-pressed[39m=[32m"false"[39m
+  [33mclass[39m=[32m"px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-200 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"[39m
+[36m>[39m
+  [36m<svg[39m
+    [33maria-hidden[39m=[32m"true"[39m
+    [33mclass[39m=[32m"lucide lucide-file-text w-4 h-4 inline mr-1.5"[39m
+    [33mfill[39m=[32m"none"[39m
+    [33mheight[39m=[32m"24"[39m
+    [33mstroke[39m=[32m"currentColor"[39m
+    [33mstroke-linecap[39m=[32m"round"[39m
+    [33mstroke-linejoin[39m=[32m"round"[39m
+    [33mstroke-width[39m=[32m"2"[39m
+    [33mviewBox[39m=[32m"0 0 24 24"[39m
+    [33mwidth[39m=[32m"24"[39m
+    [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+  [36m>[39m
+    [36m<path[39m
+      [33md[39m=[32m"M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"[39m
+    [36m/>[39m
+    [36m<path[39m
+      [33md[39m=[32m"M14 2v5a1 1 0 0 0 1 1h5"[39m
+    [36m/>[39m
+    [36m<path[39m
+      [33md[39m=[32m"M10 9H8"[39m
+    [36m/>[39m
+    [36m<path[39m
+      [33md[39m=[32m"M16 13H8"[39m
+    [36m/>[39m
+    [36m<path[39m
+      [33md[39m=[32m"M16 17H8"[39m
+    [36m/>[39m
+  [36m</svg>[39m
+  [0mEditor[0m
+[36m</button>[39m
+
+Ignored nodes: comments, script, style
+[36m<button[39m
+  [33maria-label[39m=[32m"Switch to editor view"[39m
+  [33maria-pressed[39m=[32m"false"[39m
+  [33mclass[39m=[32m"px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-200 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"[39m
+[36m>[39m
+  [36m<svg[39m
+    [33maria-hidden[39m=[32m"true"[39m
+    [33mclass[39m=[32m"lucide lucide-file-text w-4 h-4 inline mr-1.5"[39m
+    [33mfill[39m=[32m"none"[39m
+    [33mheight[39m=[32m"24"[39m
+    [33mstroke[39m=[32m"currentColor"[39m
+    [33mstroke-linecap[39m=[32m"round"[39m
+    [33mstroke-linejoin[39m=[32m"round"[39m
+    [33mstroke-width[39m=[32m"2"[39m
+    [33mviewBox[39m=[32m"0 0 24 24"[39m
+    [33mwidth[39m=[32m"24"[39m
+    [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+  [36m>[39m
+    [36m<path[39m
+      [33md[39m=[32m"M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"[39m
+    [36m/>[39m
+    [36m<path[39m
+      [33md[39m=[32m"M14 2v5a1 1 0 0 0 1 1h5"[39m
+    [36m/>[39m
+    [36m<path[39m
+      [33md[39m=[32m"M10 9H8"[39m
+    [36m/>[39m
+    [36m<path[39m
+      [33md[39m=[32m"M16 13H8"[39m
+    [36m/>[39m
+    [36m<path[39m
+      [33md[39m=[32m"M16 17H8"[39m
+    [36m/>[39m
+  [36m</svg>[39m
+  [0mEditor[0m
+[36m</button>[39m
+
+(If this is intentional, then use the `*AllBy*` variant of the query (like `queryAllByText`, `getAllByText`, or `findAllByText`)).
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"app min-h-screen bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors duration-300 flex flex-col"[39m
+    [36m>[39m
+      [36m<header[39m
+        [33mclass[39m=[32m"sticky top-0 z-50 border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-950/80 backdrop-blur-md transition-colors duration-300"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"flex items-center justify-between px-6 py-4"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"flex items-center gap-3"[39m
+          [36m>[39m
+            [36m<svg[39m
+              [33maria-hidden[39m=[32m"true"[39m
+              [33mclass[39m=[32m"lucide lucide-file-text w-8 h-8 text-indigo-600 dark:text-indigo-400 transition-colors duration-300"[39m
+              [33mfill[39m=[32m"none"[39m
+              [33mheight[39m=[32m"24"[39m
+              [33mstroke[39m=[32m"currentColor"[39m
+              [33mstroke-linecap[39m=[32m"round"[39m
+              [33mstroke-linejoin[39m=[32m"round"[39m
+              [33mstroke-width[39m=[32m"2"[39m
+              [33mviewBox[39m=[32m"0 0 24 24"[39m
+              [33mwidth[39m=[32m"24"[39m
+              [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+            [36m>[39m
+              [36m<path[39m
+                [33md[39m=[32m"M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"[39m
+              [36m/>[39m
+              [36m<path[39m
+                [33md[39m=[32m"M14 2v5a1 1 0 0 0 1 1h5"[39m
+              [36m/>[39m
+              [36m<path[39m
+                [33md[39m=[32m"M10 9H8"[39m
+              [36m/>[39m
+              [36m<path[39m
+                [33md[39m=[32m"M16 13H8"[39m
+              [36m/>[39m
+              [36m<path[39m
+                [33md[39m=[32m"M16 17H8"[39m
+              [36m/>[39m
+            [36m</svg>[39m
+            [36m<div>[39m
+              [36m<h1[39m
+                [33mclass[39m=[32m"text-xl font-bold text-slate-900 dark:text-slate-100 transition-colors duration-300"[39m
+              [36m>[39m
+                [0mMD2HTML DOCMesh[0m
+              [36m</h1>[39m
+              [36m<p[39m
+                [33mclass[39m=[32m"text-xs text-slate-500 dark:text-slate-400 transition-colors duration-300"[39m
+              [36m>[39m
+                [0mMarkdown to HTML Converter[0m
+              [36m</p>[39m
+            [36m</div>[39m
+          [36m</div>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"flex items-center gap-3"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"inline-block"[39m
+            [36m>[39m
+              [36m<button[39m
+                [33maria-label[39m=[32m"Switch to light mode"[39m
+                [33mclass[39m=[32m"p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors duration-200"[39m
+              [36m>[39m
+                [36m<svg[39m
+                  [33maria-hidden[39m=[32m"true"[39m
+                  [33mclass[39m=[32m"lucide lucide-moon w-5 h-5 text-slate-700 dark:text-slate-300 transition-colors duration-300"[39m
+                  [33mfill[39m=[32m"none"[39m
+                  [33mheight[39m=[32m"24"[39m
+                  [33mstroke[39m=[32m"currentColor"[39m
+                  [33mstroke-linecap[39m=[32m"round"[39m
+                  [33mstroke-linejoin[39m=[32m"round"[39m
+                  [33mstroke-width[39m=[32m"2"[39m
+                  [33mviewBox[39m=[32m"0 0 24 24"[39m
+                  [33mwidth[39m=[32m"24"[39m
+                  [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+                [36m>[39m
+                  [36m<path[39m
+                    [33md[39m=[32m"M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"[39m
+                  [36m/>[39m
+                [36m</svg>[39m
+              [36m</button>[39m
+            [36m</div>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"inline-block"[39m
+            [36m>[39m
+              [36m<button[39m
+                [33maria-label[39m=[32m"Download HTML"[39m
+                [33mclass[39m=[32m"flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white shadow-md hover:shadow-lg shadow-indigo-500/20 disabled:from-slate-300 disabled:to-slate-300 dark:disabled:from-slate-700 dark:disabled:to-slate-700 disabled:shadow-none disabled:cursor-not-allowed transition-all duration-200"[39m
+              [36m>[39m
+                [36m<svg[39m
+                  [33maria-hidden[39m=[32m"true"[39m
+                  [33mclass[39m=[32m"lucide lucide-download w-4 h-4"[39m
+                  [33mfill[39m=[32m"none"[39m
+                  [33mheight[39m=[32m"24"[39m
+                  [33mstroke[39m=[32m"currentColor"[39m
+                  [33mstroke-linecap[39m=[32m"round"[39m
+                  [33mstroke-linejoin[39m=[32m"round"[39m
+                  [33mstroke-width[39m=[32m"2"[39m
+                  [33mviewBox[39m=[32m"0 0 24 24"[39m
+                  [33mwidth[39m=[32m"24"[39m
+                  [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+                [36m>[39m
+                  [36m<path[39m
+                    [33md[39m=[32m"M12 15V3"[39m
+                  [36m/>[39m
+                  [36m<path[39m
+                    [33md[39m=[32m"M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"[39m
+                  [36m/>[39m
+                  [36m<path[39m
+                    [33md[39m=[32m"m7 10 5 5 5-5"[39m
+                  [36m/>[39m
+                [36m</svg>[39m
+                [36m<span[39m
+                  [33mclass[39m=[32m"text-sm font-medium"[39m
+                [36m>[39m
+                  [0mDownload HTML[0m
+                [36m</span>[39m
+              [36m</button>[39m
+            [36m</div>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"inline-block"[39m
+            [36m>[39m
+              [36m<button[39m
+                [33maria-label[39m=[32m"Download All as ZIP"[39m
+                [33mclass[39m=[32m"flex items-center gap-2 px-4 py-2 rounded-lg bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 shadow-sm hover:shadow disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"[39m
+              [36m>[39m
+                [36m<svg[39m
+                  [33maria-hidden[39m=[32m"true"[39m
+                  [33mclass[39m=[32m"lucide lucide-...
+[90m [2m❯[22m Object.getElementError node_modules/@testing-library/dom/dist/config.js:[2m37:19[22m[39m
+[90m [2m❯[22m getElementError node_modules/@testing-library/dom/dist/query-helpers.js:[2m20:35[22m[39m
+[90m [2m❯[22m getMultipleElementsFoundError node_modules/@testing-library/dom/dist/query-helpers.js:[2m23:10[22m[39m
+[90m [2m❯[22m node_modules/@testing-library/dom/dist/query-helpers.js:[2m55:13[22m[39m
+[90m [2m❯[22m node_modules/@testing-library/dom/dist/query-helpers.js:[2m95:19[22m[39m
+[36m [2m❯[22m src/App.integration.test.tsx:[2m196:41[22m[39m
+[90m [2m❯[22m AsyncProperty.run node_modules/fast-check/lib/check/property/AsyncProperty.generic.js:[2m43:28[22m[39m
+[90m [2m❯[22m asyncRunIt node_modules/fast-check/lib/check/runner/Runner.js:[2m24:21[22m[39m
+[90m [2m❯[22m src/App.integration.test.tsx:[2m175:7[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯[22m[39m
+
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m4 passed[39m[22m[90m (5)[39m
+[2m   Start at [22m 22:40:30
+[2m   Duration [22m 2.87s[2m (transform 129ms, setup 0ms, import 416ms, tests 2.29s, environment 98ms)[22m
+
