@@ -43,9 +43,12 @@ export class ExportEngine {
     ${processedHTML}
   </div>
 </div>`;
+    } else if (settings.includeTOC && settings.tocPosition === 'top-of-page' && tocEntries.length > 0) {
+      // Insert TOC after the first h1 header
+      content = this.insertTOCAfterHeader(processedHTML, tocHTML);
     } else {
-      // Top TOC or no TOC
-      content = tocHTML + processedHTML;
+      // No TOC
+      content = processedHTML;
     }
 
     // Generate CSS if needed
@@ -88,6 +91,22 @@ ${css}
 ${content}
 </body>
 </html>`;
+  }
+
+  /**
+   * Insert TOC after the first h1 header in the HTML content
+   */
+  private static insertTOCAfterHeader(html: string, tocHTML: string): string {
+    // Find the closing tag of the first h1
+    const h1Match = html.match(/<h1[^>]*>[\s\S]*?<\/h1>/i);
+    
+    if (h1Match && h1Match.index !== undefined) {
+      const insertPosition = h1Match.index + h1Match[0].length;
+      return html.slice(0, insertPosition) + '\n' + tocHTML + html.slice(insertPosition);
+    }
+    
+    // If no h1 found, prepend TOC (fallback behavior)
+    return tocHTML + html;
   }
 
   /**

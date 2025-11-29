@@ -1,16 +1,33 @@
 # MD2HTML DOCMesh
 
-A markdown-to-HTML converter web application built with React, TypeScript, and Vite. Upload multiple markdown files, edit them in a live editor, preview the rendered HTML output, and export with customizable themes and formatting options.
+A markdown-to-HTML converter and document organization web application built with React, TypeScript, and Vite. Upload multiple markdown files, edit them in a live editor, preview the rendered HTML output, export with customizable themes, and organize HTML documents into hierarchical, navigable documentation sites.
 
 ## Features
 
+### Markdown Mode
+
 - Multi-file markdown editor with live preview
-- Syntax highlighting for code blocks
-- Multiple export themes (GitHub, Dracula, Monokai, Nord, etc.)
-- HTML sanitization for security
-- Table of contents generation
+- Syntax highlighting for code blocks (auto-detected language)
+- Multiple export themes (GitHub Light/Dark, Dracula, Monokai, Nord, Sky Blue, Solarized Light)
+- HTML sanitization for security (DOMPurify)
+- Table of contents generation with configurable positioning
+- Customizable fonts and font sizes
+- Output format options (HTML5 Complete or HTML Fragment)
+- Minification and CSS inclusion options
 - Batch export to ZIP archives
 - Dark/light UI modes
+
+### DocMesh Mode
+
+- Hierarchical document organization with drag-and-drop tree editor
+- Create navigable documentation sites from multiple HTML files
+- Use markdown exports or upload HTML files directly
+- Configurable node titles and descriptions for navigation
+- Generate unified index documents with integrated navigation sidebar
+- Save and load multiple mesh configurations
+- Export complete documentation sites as ZIP archives
+- Preview individual nodes or complete index documents
+- Automatic integration with markdown exports
 
 ## Quick Start
 

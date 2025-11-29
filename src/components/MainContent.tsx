@@ -9,6 +9,7 @@ interface MainContentProps {
   onViewModeChange: (mode: 'editor' | 'preview') => void;
   onUpload: (files: File[]) => void;
   children?: React.ReactNode;
+  appMode?: 'markdown' | 'docmesh';
 }
 
 export function MainContent({
@@ -18,13 +19,14 @@ export function MainContent({
   onViewModeChange,
   onUpload,
   children,
+  appMode = 'markdown',
 }: MainContentProps) {
   const activeFile = files.find(f => f.id === activeFileId);
 
   const handleBrowseClick = () => {
     const input = document.createElement('input');
     input.type = 'file';
-    input.accept = '.md,.markdown';
+    input.accept = appMode === 'docmesh' ? '.html,.htm' : '.md,.markdown';
     input.multiple = true;
     input.onchange = (e) => {
       const target = e.target as HTMLInputElement;
@@ -44,17 +46,20 @@ export function MainContent({
     e.preventDefault();
     e.stopPropagation();
 
-    const droppedFiles = Array.from(e.dataTransfer.files).filter(
-      file => file.name.endsWith('.md') || file.name.endsWith('.markdown')
-    );
+    const droppedFiles = Array.from(e.dataTransfer.files).filter(file => {
+      if (appMode === 'docmesh') {
+        return file.name.endsWith('.html') || file.name.endsWith('.htm');
+      }
+      return file.name.endsWith('.md') || file.name.endsWith('.markdown');
+    });
 
     if (droppedFiles.length > 0) {
       onUpload(droppedFiles);
     }
   };
 
-  // Show empty state when no files exist
-  if (files.length === 0) {
+  // Show empty state when no files exist (only in markdown mode)
+  if (files.length === 0 && appMode === 'markdown') {
     return (
       <main
         className="flex-1 flex items-center justify-center p-8 bg-slate-50 dark:bg-slate-900 transition-colors duration-300"
@@ -66,7 +71,7 @@ export function MainContent({
     );
   }
 
-  // Show active workspace when files exist
+  // Show active workspace when files exist or in docmesh mode
   return (
     <main
       className="flex-1 flex flex-col bg-slate-50 dark:bg-slate-900 dot-pattern dark:dot-pattern-dark transition-colors duration-300 overflow-hidden"
@@ -77,6 +82,7 @@ export function MainContent({
         activeFile={activeFile}
         viewMode={viewMode}
         onViewModeChange={onViewModeChange}
+        appMode={appMode}
       >
         {children}
       </ActiveWorkspace>
@@ -137,11 +143,20 @@ interface ActiveWorkspaceProps {
   children?: React.ReactNode;
 }
 
+interface ActiveWorkspaceProps {
+  activeFile: MarkdownFile | undefined;
+  viewMode: 'editor' | 'preview';
+  onViewModeChange: (mode: 'editor' | 'preview') => void;
+  children?: React.ReactNode;
+  appMode: 'markdown' | 'docmesh';
+}
+
 function ActiveWorkspace({
   activeFile,
   viewMode,
   onViewModeChange,
   children,
+  appMode,
 }: ActiveWorkspaceProps) {
   return (
     <div className="flex-1 flex flex-col">
@@ -149,6 +164,7 @@ function ActiveWorkspace({
         filename={activeFile?.name}
         viewMode={viewMode}
         onViewModeChange={onViewModeChange}
+        appMode={appMode}
       />
 
       <div className="flex-1 overflow-auto">
@@ -163,9 +179,10 @@ interface ToolbarProps {
   filename?: string;
   viewMode: 'editor' | 'preview';
   onViewModeChange: (mode: 'editor' | 'preview') => void;
+  appMode: 'markdown' | 'docmesh';
 }
 
-function Toolbar({ filename, viewMode, onViewModeChange }: ToolbarProps) {
+function Toolbar({ filename, viewMode, onViewModeChange, appMode }: ToolbarProps) {
   return (
     <div className="border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 px-6 py-3 transition-colors duration-300">
       <div className="flex items-center justify-between">
@@ -173,42 +190,44 @@ function Toolbar({ filename, viewMode, onViewModeChange }: ToolbarProps) {
         <div className="flex items-center gap-2">
           <FileText className="w-4 h-4 text-slate-500 dark:text-slate-400 transition-colors duration-300" />
           <span className="text-sm font-medium text-slate-700 dark:text-slate-300 transition-colors duration-300">
-            {filename || 'No file selected'}
+            {appMode === 'docmesh' ? 'Document Mesh Preview' : (filename || 'No file selected')}
           </span>
         </div>
 
-        {/* View toggle */}
-        <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 rounded-lg p-1 transition-colors duration-300">
-          <Tooltip content="Edit markdown content">
-            <button
-              onClick={() => onViewModeChange('editor')}
-              className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-200 ${viewMode === 'editor'
-                ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-sm'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
-                }`}
-              aria-label="Switch to editor view"
-              aria-pressed={viewMode === 'editor'}
-            >
-              <FileText className="w-4 h-4 inline mr-1.5" />
-              Editor
-            </button>
-          </Tooltip>
+        {/* View toggle - only show in markdown mode */}
+        {appMode === 'markdown' && (
+          <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 rounded-lg p-1 transition-colors duration-300">
+            <Tooltip content="Edit markdown content">
+              <button
+                onClick={() => onViewModeChange('editor')}
+                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-200 ${viewMode === 'editor'
+                  ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-sm'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
+                  }`}
+                aria-label="Switch to editor view"
+                aria-pressed={viewMode === 'editor'}
+              >
+                <FileText className="w-4 h-4 inline mr-1.5" />
+                Editor
+              </button>
+            </Tooltip>
 
-          <Tooltip content="Preview rendered HTML">
-            <button
-              onClick={() => onViewModeChange('preview')}
-              className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-200 ${viewMode === 'preview'
-                ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-sm'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
-                }`}
-              aria-label="Switch to preview view"
-              aria-pressed={viewMode === 'preview'}
-            >
-              <Eye className="w-4 h-4 inline mr-1.5" />
-              Preview
-            </button>
-          </Tooltip>
-        </div>
+            <Tooltip content="Preview rendered HTML">
+              <button
+                onClick={() => onViewModeChange('preview')}
+                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-200 ${viewMode === 'preview'
+                  ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-sm'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
+                  }`}
+                aria-label="Switch to preview view"
+                aria-pressed={viewMode === 'preview'}
+              >
+                <Eye className="w-4 h-4 inline mr-1.5" />
+                Preview
+              </button>
+            </Tooltip>
+          </div>
+        )}
       </div>
     </div>
   );

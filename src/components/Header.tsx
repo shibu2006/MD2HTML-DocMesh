@@ -9,6 +9,7 @@ interface HeaderProps {
   files: MarkdownFile[];
   exportSettings: ExportSettings;
   onToggleUIMode: () => void;
+  onMarkdownExport?: (markdownFile: MarkdownFile, htmlContent: string) => void;
 }
 
 export function Header({
@@ -17,6 +18,7 @@ export function Header({
   files,
   exportSettings,
   onToggleUIMode,
+  onMarkdownExport,
 }: HeaderProps) {
   const activeFile = files.find(f => f.id === activeFileId);
 
@@ -26,6 +28,11 @@ export function Header({
     const html = ExportEngine.generateHTML(activeFile, exportSettings);
     const filename = activeFile.name.replace(/\.md$/, '.html');
     ExportEngine.downloadFile(html, filename);
+    
+    // Notify about the export for DocMesh integration
+    if (onMarkdownExport) {
+      onMarkdownExport(activeFile, html);
+    }
   };
 
   const handleDownloadAll = async () => {
@@ -33,6 +40,14 @@ export function Header({
 
     const zipBlob = await ExportEngine.generateZIP(files, exportSettings);
     ExportEngine.downloadBlob(zipBlob, 'md2html-export.zip');
+    
+    // Notify about each export for DocMesh integration
+    if (onMarkdownExport) {
+      for (const file of files) {
+        const html = ExportEngine.generateHTML(file, exportSettings);
+        onMarkdownExport(file, html);
+      }
+    }
   };
 
   return (

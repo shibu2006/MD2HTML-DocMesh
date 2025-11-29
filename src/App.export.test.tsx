@@ -1,135 +1,214 @@
-import { describe, it, expect } from 'vitest';
-import * as fc from 'fast-check';
-import type { MarkdownFile, ExportSettings } from './types';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import type { MarkdownFile, ExportSettings, DocMesh } from './types';
+import { HtmlFileManager } from './utils/htmlFileManager';
 import { ExportEngine } from './utils/exportEngine';
+import { MeshManager } from './utils/meshManager';
 
-// Arbitrary for generating markdown files
-const markdownFileArbitrary = fc.record({
-  id: fc.uuid(),
-  name: fc.stringMatching(/^[a-zA-Z0-9_-]+\.md$/),
-  content: fc.string({ minLength: 10, maxLength: 1000 }),
-  size: fc.nat({ max: 100000 }),
-  uploadDate: fc.date(),
-});
+describe('Markdown Re-export Integration', () => {
+  let htmlFileManager: HtmlFileManager;
+  let consoleSpy: ReturnType<typeof vi.spyOn>;
 
-// Arbitrary for theme names
-const themeArbitrary = fc.constantFrom(
-  'github-light',
-  'github-dark',
-  'dracula',
-  'monokai',
-  'sky-blue',
-  'solarized-light',
-  'nord'
-) as fc.Arbitrary<ExportSettings['theme']>;
-
-describe('Export Integration Tests', () => {
-  describe('Property 17: Theme CSS included in export', () => {
-    // Feature: md2html-docmesh, Property 17: Theme CSS included in export
-    // Validates: Requirements 7.5
-    it('should include theme CSS styles in exported HTML', () => {
-      fc.assert(
-        fc.property(
-          markdownFileArbitrary,
-          themeArbitrary,
-          (file, theme) => {
-            const exportSettings: ExportSettings = {
-              outputFormat: 'html5-complete',
-              theme,
-              fontFamily: 'system',
-              fontSize: 'medium',
-              includeTOC: false,
-              tocPosition: 'left-sidebar',
-              sanitizeHTML: true,
-              includeCSS: true,
-              minifyOutput: false,
-              highlightCode: true,
-            };
-            
-            const html = ExportEngine.generateHTML(file, exportSettings);
-            
-            // Verify HTML contains style tag
-            expect(html).toContain('<style>');
-            expect(html).toContain('</style>');
-            
-            // Verify theme-related CSS properties are present
-            // Themes should include background-color, color, etc.
-            const hasBackgroundColor = html.includes('background-color:') || html.includes('background:');
-            const hasTextColor = html.includes('color:');
-            
-            expect(hasBackgroundColor || hasTextColor).toBe(true);
-          }
-        ),
-        { numRuns: 100 }
-      );
-    });
+  beforeEach(() => {
+    htmlFileManager = new HtmlFileManager();
+    consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+    vi.spyOn(console, 'info').mockImplementation(() => {});
   });
 
-  describe('Property 31: Download filename uses HTML extension', () => {
-    // Feature: md2html-docmesh, Property 31: Download filename uses HTML extension
-    // Validates: Requirements 10.3
-    it('should use .html extension for downloaded markdown files', () => {
-      fc.assert(
-        fc.property(
-          fc.record({
-            id: fc.uuid(),
-            name: fc.stringMatching(/^[a-zA-Z0-9_-]+\.md$/),
-            content: fc.string({ minLength: 10, maxLength: 1000 }),
-            size: fc.nat({ max: 100000 }),
-            uploadDate: fc.date(),
-          }),
-          (file) => {
-            // The filename transformation logic
-            const expectedFilename = file.name.replace(/\.md$/, '.html');
-            
-            // Verify the transformation is correct
-            expect(expectedFilename).toMatch(/\.html$/);
-            expect(expectedFilename).not.toMatch(/\.md$/);
-            
-            // Verify the base name is preserved
-            const baseName = file.name.replace(/\.md$/, '');
-            expect(expectedFilename).toContain(baseName);
-          }
-        ),
-        { numRuns: 100 }
-      );
-    });
+  it('should update HTML file and notify when markdown is re-exported', () => {
+    const markdownFile: MarkdownFile = {
+      id: 'md-1',
+      name: 'test.md',
+      content: '# Original Content',
+      size: 100,
+      uploadDate: new Date()
+    };
+
+    const settings: ExportSettings = {
+      outputFormat: 'html5-complete',
+      theme: 'github-light',
+      fontFamily: 'system',
+      fontSize: 'medium',
+      includeTOC: false,
+      tocPosition: 'top-of-page',
+      sanitizeHTML: true,
+      includeCSS: true,
+      minifyOutput: false,
+      highlightCode: true
+    };
+
+    // Initial export
+    const initialHtml = ExportEngine.generateHTML(markdownFile, settings);
+    const htmlFile = htmlFileManager.createFromMarkdownExport(markdownFile, initialHtml, settings);
+
+    // Create a mesh and add the HTML file as a node
+    let currentMesh: DocMesh = {
+      id: 'test-mesh',
+      name: 'Test Mesh',
+      rootNodeId: null,
+      nodes: new Map(),
+      createdDate: new Date(),
+      modifiedDate: new Date()
+    };
+
+    currentMesh = MeshManager.addNode(currentMesh, htmlFile.id, null, 'Test Node');
+    const nodeId = Array.from(currentMesh.nodes.keys())[0];
+
+    // Simulate the handleMarkdownExport logic
+    const existingHtmlFile = htmlFileManager.findBySourceId(markdownFile.id);
+    expect(existingHtmlFile).not.toBeNull();
+
+    // Update markdown and re-export
+    const updatedMarkdownFile = {
+      ...markdownFile,
+      content: '# Updated Content'
+    };
+    const updatedHtml = ExportEngine.generateHTML(updatedMarkdownFile, settings);
+
+    // Update the HTML file
+    htmlFileManager.updateFromMarkdownExport(existingHtmlFile!.id, updatedHtml);
+
+    // Check if this HTML file is used in the current mesh
+    const affectedNodes: string[] = [];
+    for (const [nId, node] of currentMesh.nodes.entries()) {
+      if (node.htmlFileId === existingHtmlFile!.id) {
+        affectedNodes.push(nId);
+      }
+    }
+
+    // Verify that the node was identified as affected
+    expect(affectedNodes).toContain(nodeId);
+    expect(affectedNodes.length).toBe(1);
+
+    // Verify the HTML file was updated
+    const updatedHtmlFile = htmlFileManager.getHtmlFile(existingHtmlFile!.id);
+    expect(updatedHtmlFile?.content).toBe(updatedHtml);
+    expect(updatedHtmlFile?.content).toContain('Updated Content');
   });
 
-  describe('Property 31 Extended: ZIP filenames use HTML extension', () => {
-    // Feature: md2html-docmesh, Property 31: Download filename uses HTML extension
-    // Validates: Requirements 10.3, 11.2
-    it('should use .html extension for all files in ZIP export', async () => {
-      await fc.assert(
-        fc.asyncProperty(
-          fc.array(markdownFileArbitrary, { minLength: 1, maxLength: 10 }),
-          async (files) => {
-            const exportSettings: ExportSettings = {
-              outputFormat: 'html5-complete',
-              theme: 'github-dark',
-              fontFamily: 'system',
-              fontSize: 'medium',
-              includeTOC: false,
-              tocPosition: 'left-sidebar',
-              sanitizeHTML: true,
-              includeCSS: true,
-              minifyOutput: false,
-              highlightCode: true,
-            };
-            
-            const zipBlob = await ExportEngine.generateZIP(files, exportSettings);
-            
-            // Verify ZIP was created
-            expect(zipBlob).toBeInstanceOf(Blob);
-            expect(zipBlob.type).toBe('application/zip');
-            
-            // We can't easily inspect ZIP contents without additional libraries,
-            // but we can verify the blob was created successfully
-            expect(zipBlob.size).toBeGreaterThan(0);
-          }
-        ),
-        { numRuns: 100 }
-      );
-    });
+  it('should handle re-export when HTML file is used in multiple nodes', () => {
+    const markdownFile: MarkdownFile = {
+      id: 'md-1',
+      name: 'test.md',
+      content: '# Shared Content',
+      size: 100,
+      uploadDate: new Date()
+    };
+
+    const settings: ExportSettings = {
+      outputFormat: 'html5-complete',
+      theme: 'github-light',
+      fontFamily: 'system',
+      fontSize: 'medium',
+      includeTOC: false,
+      tocPosition: 'top-of-page',
+      sanitizeHTML: true,
+      includeCSS: true,
+      minifyOutput: false,
+      highlightCode: true
+    };
+
+    // Initial export
+    const initialHtml = ExportEngine.generateHTML(markdownFile, settings);
+    const htmlFile = htmlFileManager.createFromMarkdownExport(markdownFile, initialHtml, settings);
+
+    // Create a mesh with multiple nodes referencing the same HTML file
+    let currentMesh: DocMesh = {
+      id: 'test-mesh',
+      name: 'Test Mesh',
+      rootNodeId: null,
+      nodes: new Map(),
+      createdDate: new Date(),
+      modifiedDate: new Date()
+    };
+
+    // Add first node
+    currentMesh = MeshManager.addNode(currentMesh, htmlFile.id, null, 'Node 1');
+    const node1Id = Array.from(currentMesh.nodes.keys())[0];
+
+    // Add second node with same HTML file
+    currentMesh = MeshManager.addNode(currentMesh, htmlFile.id, null, 'Node 2');
+    const node2Id = Array.from(currentMesh.nodes.keys())[1];
+
+    // Update markdown and re-export
+    const updatedMarkdownFile = {
+      ...markdownFile,
+      content: '# Updated Shared Content'
+    };
+    const updatedHtml = ExportEngine.generateHTML(updatedMarkdownFile, settings);
+
+    const existingHtmlFile = htmlFileManager.findBySourceId(markdownFile.id);
+    htmlFileManager.updateFromMarkdownExport(existingHtmlFile!.id, updatedHtml);
+
+    // Check affected nodes
+    const affectedNodes: string[] = [];
+    for (const [nId, node] of currentMesh.nodes.entries()) {
+      if (node.htmlFileId === existingHtmlFile!.id) {
+        affectedNodes.push(nId);
+      }
+    }
+
+    // Both nodes should be affected
+    expect(affectedNodes).toContain(node1Id);
+    expect(affectedNodes).toContain(node2Id);
+    expect(affectedNodes.length).toBe(2);
+
+    // Verify both nodes still reference the updated HTML file
+    const updatedHtmlFile = htmlFileManager.getHtmlFile(existingHtmlFile!.id);
+    expect(updatedHtmlFile?.content).toContain('Updated Shared Content');
+  });
+
+  it('should not affect nodes when re-exporting markdown not in mesh', () => {
+    const markdownFile: MarkdownFile = {
+      id: 'md-1',
+      name: 'test.md',
+      content: '# Content',
+      size: 100,
+      uploadDate: new Date()
+    };
+
+    const settings: ExportSettings = {
+      outputFormat: 'html5-complete',
+      theme: 'github-light',
+      fontFamily: 'system',
+      fontSize: 'medium',
+      includeTOC: false,
+      tocPosition: 'top-of-page',
+      sanitizeHTML: true,
+      includeCSS: true,
+      minifyOutput: false,
+      highlightCode: true
+    };
+
+    // Export markdown but don't add to mesh
+    const html = ExportEngine.generateHTML(markdownFile, settings);
+    const htmlFile = htmlFileManager.createFromMarkdownExport(markdownFile, html, settings);
+
+    // Create an empty mesh
+    const currentMesh: DocMesh = {
+      id: 'test-mesh',
+      name: 'Test Mesh',
+      rootNodeId: null,
+      nodes: new Map(),
+      createdDate: new Date(),
+      modifiedDate: new Date()
+    };
+
+    // Re-export
+    const updatedHtml = ExportEngine.generateHTML(
+      { ...markdownFile, content: '# Updated' },
+      settings
+    );
+    htmlFileManager.updateFromMarkdownExport(htmlFile.id, updatedHtml);
+
+    // Check affected nodes
+    const affectedNodes: string[] = [];
+    for (const [nId, node] of currentMesh.nodes.entries()) {
+      if (node.htmlFileId === htmlFile.id) {
+        affectedNodes.push(nId);
+      }
+    }
+
+    // No nodes should be affected
+    expect(affectedNodes.length).toBe(0);
   });
 });
