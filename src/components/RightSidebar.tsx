@@ -92,26 +92,30 @@ export function RightSidebar({
                   </Tooltip>
                 </label>
                 <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => onMeshPreviewModeChange?.('node')}
-                    className={`flex-1 px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${meshPreviewMode === 'node'
-                        ? 'bg-indigo-600 text-white shadow-sm'
-                        : 'bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-700'
-                      }`}
-                  >
-                    Node View
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => onMeshPreviewModeChange?.('index')}
-                    className={`flex-1 px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${meshPreviewMode === 'index'
-                        ? 'bg-indigo-600 text-white shadow-sm'
-                        : 'bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-700'
-                      }`}
-                  >
-                    Index View
-                  </button>
+                  <Tooltip content="Preview the selected node's content">
+                    <button
+                      type="button"
+                      onClick={() => onMeshPreviewModeChange?.('node')}
+                      className={`flex-1 px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${meshPreviewMode === 'node'
+                          ? 'bg-indigo-600 text-white shadow-sm'
+                          : 'bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-700'
+                        }`}
+                    >
+                      Node View
+                    </button>
+                  </Tooltip>
+                  <Tooltip content="Preview the complete index document with navigation">
+                    <button
+                      type="button"
+                      onClick={() => onMeshPreviewModeChange?.('index')}
+                      className={`flex-1 px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${meshPreviewMode === 'index'
+                          ? 'bg-indigo-600 text-white shadow-sm'
+                          : 'bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-700'
+                        }`}
+                    >
+                      Index View
+                    </button>
+                  </Tooltip>
                 </div>
               </div>
             </div>
