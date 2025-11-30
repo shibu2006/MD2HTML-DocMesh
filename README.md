@@ -149,3 +149,29 @@ export default defineConfig([
   },
 ])
 ```
+
+To understand each feature functionality of the app please go through the docs folder. 
+
+The structure of docs folder is as follows:
+
+```
+docs/
+├── README.md              # Documentation index
+├── getting-started.md     # Quick start guide
+├── markdown/              # Markdown mode docs
+│   ├── file-management.md
+│   ├── editor-preview.md
+│   ├── export-settings.md
+│   └── themes-styling.md
+├── docmesh/               # DocMesh mode docs
+│   ├── overview.md
+│   ├── building-trees.md
+│   ├── mesh-controls.md
+│   └── exporting.md
+└── ui/                    # UI element reference
+    ├── header.md
+    ├── left-sidebar.md
+    ├── main-content.md
+    ├── right-sidebar.md
+    └── notifications.md
+```
