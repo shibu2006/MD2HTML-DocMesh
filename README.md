@@ -168,6 +168,9 @@ docs/
 │   ├── editor-preview.md
 │   ├── export-settings.md
 │   └── themes-styling.md
+├── demo/                  # Demos & screenshots
+│   ├── MarkdownHtml.mp4 & etc
+│   ├── MD2HTML_DocMesh_001.png & etc
 ├── docmesh/               # DocMesh mode docs
 │   ├── overview.md
 │   ├── building-trees.md
