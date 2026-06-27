@@ -3,6 +3,7 @@ import type { DocMesh, MeshNode, HtmlFile, ExportSettings } from '../types';
 import { HtmlFileNotFoundError } from '../types';
 import { MeshManager } from './meshManager';
 import { ThemeManager } from './themeManager';
+import { MarkdownEngine } from './markdownEngine';
 
 /**
  * DocMeshExportEngine handles export operations for DocMesh structures,
@@ -33,7 +34,7 @@ export class DocMeshExportEngine {
     const css = this.generateMeshCSS(settings);
 
     // Combine everything into a complete HTML5 document
-    return this.generateHTML5Document(mesh.name, navigationHTML, contentHTML, css);
+    return this.generateHTML5Document(mesh.name, navigationHTML, contentHTML, css, settings);
   }
 
   /**
@@ -49,6 +50,9 @@ export class DocMeshExportEngine {
 
     // Wrap in content div to apply styles
     const contentHTML = `<div class="docmesh-content">\n${bodyContent}\n</div>`;
+    const mermaidScript = MarkdownEngine.containsMermaid(bodyContent)
+      ? '\n  ' + this.generateMermaidScript(settings)
+      : '';
 
     return `<!DOCTYPE html>
 <html lang="en">
@@ -71,7 +75,7 @@ ${css}
 <body>
   <div class="docmesh-layout">
     ${contentHTML}
-  </div>
+  </div>${mermaidScript}
 </body>
 </html>`;
   }
@@ -250,8 +254,13 @@ ${css}
     title: string,
     navigationHTML: string,
     contentHTML: string,
-    css: string
+    css: string,
+    settings: ExportSettings
   ): string {
+    const mermaidScript = MarkdownEngine.containsMermaid(contentHTML)
+      ? '\n  ' + this.generateMermaidScript(settings)
+      : '';
+
     return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -266,9 +275,21 @@ ${css}
   <div class="docmesh-layout">
     ${navigationHTML}
     ${contentHTML}
-  </div>
+  </div>${mermaidScript}
 </body>
 </html>`;
+  }
+
+  /**
+   * Generate the mermaid runtime script that renders <pre class="mermaid">
+   * blocks within the stitched DocMesh document.
+   */
+  private static generateMermaidScript(settings: ExportSettings): string {
+    const mermaidTheme = ThemeManager.isDarkTheme(settings.theme) ? 'dark' : 'default';
+    return `<script type="module">
+  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+  mermaid.initialize({ startOnLoad: true, theme: '${mermaidTheme}' });
+</script>`;
   }
 
   /**
@@ -428,6 +449,19 @@ body {
 .docmesh-content pre code {
   background-color: transparent;
   padding: 0;
+}
+
+.docmesh-content pre.mermaid {
+  background-color: transparent;
+  border: none;
+  padding: 0;
+  text-align: center;
+  overflow-x: auto;
+}
+
+.docmesh-content pre.mermaid svg {
+  max-width: 100%;
+  height: auto;
 }
 
 .docmesh-content ul,

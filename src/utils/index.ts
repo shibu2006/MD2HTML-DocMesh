@@ -8,3 +8,4 @@ export { ExportEngine } from './exportEngine';
 export { HtmlFileManager } from './htmlFileManager';
 export { MeshManager } from './meshManager';
 export { DocMeshExportEngine } from './docMeshExportEngine';
+export { renderMermaid } from './mermaidRenderer';

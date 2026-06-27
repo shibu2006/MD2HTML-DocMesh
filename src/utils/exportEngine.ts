@@ -1,6 +1,6 @@
 import JSZip from 'jszip';
 import type { MarkdownFile, ExportSettings, TOCEntry } from '../types';
-import { markdownEngine } from './markdownEngine';
+import { markdownEngine, MarkdownEngine } from './markdownEngine';
 import { ThemeManager } from './themeManager';
 
 /**
@@ -58,9 +58,14 @@ export class ExportEngine {
 
     // Return based on output format
     if (settings.outputFormat === 'html5-complete') {
-      finalOutput = this.generateHTML5Complete(file.name, content, css);
+      finalOutput = this.generateHTML5Complete(file.name, content, css, settings);
     } else {
+      // For fragments, still append the mermaid runtime so diagrams render
+      // wherever the fragment is embedded.
       finalOutput = content;
+      if (MarkdownEngine.containsMermaid(content)) {
+        finalOutput += '\n' + this.generateMermaidScript(settings);
+      }
     }
 
     // Minify if enabled
@@ -74,8 +79,11 @@ export class ExportEngine {
   /**
    * Generate HTML5 Complete document structure
    */
-  private static generateHTML5Complete(filename: string, content: string, css: string): string {
+  private static generateHTML5Complete(filename: string, content: string, css: string, settings: ExportSettings): string {
     const title = filename.replace(/\.md$/, '');
+    const mermaidScript = MarkdownEngine.containsMermaid(content)
+      ? '\n' + this.generateMermaidScript(settings)
+      : '';
 
     return `<!DOCTYPE html>
 <html lang="en">
@@ -88,9 +96,22 @@ ${css}
   </style>` : ''}
 </head>
 <body>
-${content}
+${content}${mermaidScript}
 </body>
 </html>`;
+  }
+
+  /**
+   * Generate the mermaid runtime script that renders <pre class="mermaid">
+   * blocks into diagrams in the exported HTML. Loads mermaid as an ES module
+   * from a CDN and initializes it with a light/dark theme.
+   */
+  private static generateMermaidScript(settings: ExportSettings): string {
+    const mermaidTheme = ThemeManager.isDarkTheme(settings.theme) ? 'dark' : 'default';
+    return `<script type="module">
+  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+  mermaid.initialize({ startOnLoad: true, theme: '${mermaidTheme}' });
+</script>`;
   }
 
   /**
@@ -228,6 +249,19 @@ pre {
 pre code {
   background-color: transparent;
   padding: 0;
+}
+
+pre.mermaid {
+  background-color: transparent;
+  border: none;
+  padding: 0;
+  text-align: center;
+  overflow-x: auto;
+}
+
+pre.mermaid svg {
+  max-width: 100%;
+  height: auto;
 }
 
 blockquote {

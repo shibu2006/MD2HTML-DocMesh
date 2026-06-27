@@ -1,6 +1,6 @@
-import { useMemo } from 'react';
+import { useMemo, useEffect, useRef } from 'react';
 import type { MarkdownFile, ExportSettings } from '../types';
-import { markdownEngine, ThemeManager } from '../utils';
+import { markdownEngine, ThemeManager, renderMermaid, MarkdownEngine } from '../utils';
 
 interface PreviewProps {
   activeFile: MarkdownFile | undefined;
@@ -134,6 +134,21 @@ export function Preview({ activeFile, exportSettings }: PreviewProps) {
       .preview-content p {
         color: ${themeStyles.textColor} !important;
       }
+      .preview-content pre.mermaid {
+        background-color: transparent !important;
+        border: none !important;
+        padding: 0 !important;
+        text-align: center;
+        overflow-x: auto;
+      }
+      .preview-content pre.mermaid svg {
+        max-width: 100%;
+        height: auto;
+      }
+      .preview-content .mermaid-error {
+        color: #e06c75 !important;
+        background-color: transparent !important;
+      }
     `;
 
     if (exportSettings.highlightCode) {
@@ -185,6 +200,19 @@ export function Preview({ activeFile, exportSettings }: PreviewProps) {
     return tocHTML + renderedHTML;
   }, [renderedHTML, tocHTML, exportSettings.includeTOC, exportSettings.tocPosition]);
 
+  // Container ref for the rendered markdown, used to render mermaid diagrams.
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  // Render any mermaid diagrams present in the rendered HTML. Re-runs when the
+  // content or theme changes (the keyed inner div is recreated on theme change,
+  // which clears previously rendered SVGs so they can be redrawn).
+  useEffect(() => {
+    if (!MarkdownEngine.containsMermaid(finalHTML) && !MarkdownEngine.containsMermaid(renderedHTML)) {
+      return;
+    }
+    renderMermaid(contentRef.current, exportSettings.theme);
+  }, [finalHTML, renderedHTML, exportSettings.theme]);
+
   // Handle TOC link clicks
   const handleTOCClick = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
     e.preventDefault();
@@ -233,7 +261,7 @@ export function Preview({ activeFile, exportSettings }: PreviewProps) {
           }}
         >
           <style>{customCSS}</style>
-          <div dangerouslySetInnerHTML={{ __html: renderedHTML }} />
+          <div ref={contentRef} key={exportSettings.theme} dangerouslySetInnerHTML={{ __html: renderedHTML }} />
         </div>
       </div>
     );
@@ -264,7 +292,7 @@ export function Preview({ activeFile, exportSettings }: PreviewProps) {
       }}
     >
       <style>{customCSS}</style>
-      <div dangerouslySetInnerHTML={{ __html: finalHTML }} />
+      <div ref={contentRef} key={exportSettings.theme} dangerouslySetInnerHTML={{ __html: finalHTML }} />
     </div>
   );
 }

@@ -36,12 +36,49 @@ export class MarkdownEngine {
       })
     );
 
+    // Render fenced ```mermaid blocks as <pre class="mermaid"> so that the
+    // mermaid runtime (in the live preview and in exported HTML) can turn
+    // them into diagrams. Other languages fall back to the default
+    // (highlight.js) rendering by returning false.
+    this.marked.use({
+      renderer: {
+        code({ text, lang }) {
+          const language = (lang || '').trim().split(/\s+/)[0].toLowerCase();
+          if (language === 'mermaid') {
+            return `<pre class="mermaid">${MarkdownEngine.escapeHtml(text)}</pre>\n`;
+          }
+          return false;
+        }
+      }
+    });
+
     // Configure marked options
     this.marked.setOptions({
       gfm: true, // GitHub Flavored Markdown
       breaks: true, // Convert \n to <br>
       pedantic: false,
     });
+  }
+
+  /**
+   * Escape HTML special characters so the mermaid source can be safely
+   * embedded in markup. The mermaid runtime reads the element's textContent,
+   * which decodes these entities back to their original characters.
+   */
+  static escapeHtml(text: string): string {
+    return text
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  /**
+   * Detect whether rendered HTML contains mermaid diagram blocks.
+   */
+  static containsMermaid(html: string): boolean {
+    return /<pre[^>]*class="[^"]*\bmermaid\b[^"]*"/i.test(html);
   }
 
   /**
