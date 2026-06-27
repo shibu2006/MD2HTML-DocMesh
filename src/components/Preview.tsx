@@ -146,8 +146,22 @@ export function Preview({ activeFile, exportSettings }: PreviewProps) {
         height: auto;
       }
       .preview-content .mermaid-error {
-        color: #e06c75 !important;
-        background-color: transparent !important;
+        color: #b91c1c !important;
+        background-color: rgba(239, 68, 68, 0.08) !important;
+        border: 1px solid rgba(239, 68, 68, 0.4) !important;
+        border-radius: 6px !important;
+        padding: 12px 16px !important;
+        text-align: left !important;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+        white-space: normal !important;
+      }
+      .preview-content .mermaid-error-detail {
+        display: block;
+        margin-top: 6px;
+        font-family: monospace !important;
+        font-size: 0.85em;
+        opacity: 0.85;
+        word-break: break-word;
       }
     `;
 

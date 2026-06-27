@@ -2,6 +2,7 @@ import JSZip from 'jszip';
 import type { MarkdownFile, ExportSettings, TOCEntry } from '../types';
 import { markdownEngine, MarkdownEngine } from './markdownEngine';
 import { ThemeManager } from './themeManager';
+import { getMermaidExportScript } from './mermaidAssets';
 
 /**
  * ExportEngine class for generating HTML exports and ZIP archives
@@ -103,15 +104,13 @@ ${content}${mermaidScript}
 
   /**
    * Generate the mermaid runtime script that renders <pre class="mermaid">
-   * blocks into diagrams in the exported HTML. Loads mermaid as an ES module
-   * from a CDN and initializes it with a light/dark theme.
+   * blocks into interactive diagrams (with the zoom/pan/export toolbar) in the
+   * exported HTML. Loads mermaid as an ES module from a CDN.
    */
   private static generateMermaidScript(settings: ExportSettings): string {
-    const mermaidTheme = ThemeManager.isDarkTheme(settings.theme) ? 'dark' : 'default';
-    return `<script type="module">
-  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
-  mermaid.initialize({ startOnLoad: true, theme: '${mermaidTheme}' });
-</script>`;
+    const isDark = ThemeManager.isDarkTheme(settings.theme);
+    const backgroundColor = ThemeManager.getThemeStyles(settings.theme).backgroundColor;
+    return getMermaidExportScript(isDark, backgroundColor);
   }
 
   /**
@@ -430,16 +429,23 @@ th {
    * Minify HTML by removing unnecessary whitespace
    */
   static minify(html: string): string {
-    // Preserve content within pre and code tags
+    // Preserve content within pre, code, script, and style tags
     const preCodeBlocks: string[] = [];
     let preservedHTML = html;
 
-    // Extract and preserve pre/code blocks
-    preservedHTML = preservedHTML.replace(/<pre[^>]*>[\s\S]*?<\/pre>/gi, (match) => {
-      const index = preCodeBlocks.length;
-      preCodeBlocks.push(match);
-      return `___PRESERVED_BLOCK_${index}___`;
-    });
+    const preserve = (regex: RegExp) => {
+      preservedHTML = preservedHTML.replace(regex, (match) => {
+        const index = preCodeBlocks.length;
+        preCodeBlocks.push(match);
+        return `___PRESERVED_BLOCK_${index}___`;
+      });
+    };
+
+    // Extract and preserve blocks whose internal whitespace is significant.
+    // CSS in <style> is intentionally left to be minified (whitespace there is
+    // insignificant), but <pre> and <script> content must be kept verbatim.
+    preserve(/<pre[^>]*>[\s\S]*?<\/pre>/gi);
+    preserve(/<script[^>]*>[\s\S]*?<\/script>/gi);
 
     // Remove newlines and extra spaces
     preservedHTML = preservedHTML
@@ -448,7 +454,7 @@ th {
       .replace(/>\s+</g, '><')
       .trim();
 
-    // Restore pre/code blocks
+    // Restore preserved blocks
     preCodeBlocks.forEach((block, index) => {
       preservedHTML = preservedHTML.replace(`___PRESERVED_BLOCK_${index}___`, block);
     });

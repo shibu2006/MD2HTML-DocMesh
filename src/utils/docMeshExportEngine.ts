@@ -4,6 +4,7 @@ import { HtmlFileNotFoundError } from '../types';
 import { MeshManager } from './meshManager';
 import { ThemeManager } from './themeManager';
 import { MarkdownEngine } from './markdownEngine';
+import { getMermaidExportScript } from './mermaidAssets';
 
 /**
  * DocMeshExportEngine handles export operations for DocMesh structures,
@@ -282,14 +283,13 @@ ${css}
 
   /**
    * Generate the mermaid runtime script that renders <pre class="mermaid">
-   * blocks within the stitched DocMesh document.
+   * blocks within the stitched DocMesh document, including the interactive
+   * zoom/pan/export toolbar.
    */
   private static generateMermaidScript(settings: ExportSettings): string {
-    const mermaidTheme = ThemeManager.isDarkTheme(settings.theme) ? 'dark' : 'default';
-    return `<script type="module">
-  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
-  mermaid.initialize({ startOnLoad: true, theme: '${mermaidTheme}' });
-</script>`;
+    const isDark = ThemeManager.isDarkTheme(settings.theme);
+    const backgroundColor = ThemeManager.getThemeStyles(settings.theme).backgroundColor;
+    return getMermaidExportScript(isDark, backgroundColor);
   }
 
   /**
