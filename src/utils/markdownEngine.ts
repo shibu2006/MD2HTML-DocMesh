@@ -163,6 +163,62 @@ export class MarkdownEngine {
   }
 
   /**
+   * Remove an author-written "Table of Contents" section (a heading titled
+   * "Table of Contents" / "Contents" / "TOC" immediately followed by a list)
+   * from markdown. Used when a generated TOC is enabled so the document's own
+   * manual TOC isn't duplicated. Only strips the heading when a list actually
+   * follows it, so genuine content sections are left untouched.
+   */
+  stripAuthoredTOC(markdown: string): string {
+    const lines = markdown.split('\n');
+    const out: string[] = [];
+    const isHeading = (l: string) => /^#{1,6}\s+/.test(l);
+    const isListItem = (l: string) => /^\s*([-*+]|\d+[.)])\s+/.test(l);
+
+    let i = 0;
+    while (i < lines.length) {
+      const line = lines[i];
+      const headingMatch = line.match(/^#{1,6}\s+(.+?)\s*$/);
+
+      if (headingMatch) {
+        const title = headingMatch[1].trim().toLowerCase().replace(/[:#]+$/, '').trim();
+        if (title === 'table of contents' || title === 'contents' || title === 'toc') {
+          // Look ahead past blank lines for a list.
+          let j = i + 1;
+          while (j < lines.length && lines[j].trim() === '') {
+            j++;
+          }
+          if (j < lines.length && isListItem(lines[j])) {
+            // Skip the heading and the following TOC list block.
+            i++;
+            while (i < lines.length) {
+              const l = lines[i];
+              if (l.trim() === '') {
+                i++;
+                continue;
+              }
+              if (isHeading(l)) {
+                break;
+              }
+              if (isListItem(l)) {
+                i++;
+                continue;
+              }
+              break;
+            }
+            continue;
+          }
+        }
+      }
+
+      out.push(line);
+      i++;
+    }
+
+    return out.join('\n').replace(/^\n+/, '');
+  }
+
+  /**
    * Sanitize HTML using DOMPurify
    */
   sanitize(html: string): string {

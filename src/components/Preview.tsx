@@ -8,13 +8,24 @@ interface PreviewProps {
 }
 
 export function Preview({ activeFile, exportSettings }: PreviewProps) {
+  // When a TOC is generated, drop the document's own authored "Table of
+  // Contents" section so it isn't duplicated alongside the generated one.
+  const sourceContent = useMemo(() => {
+    if (!activeFile) {
+      return '';
+    }
+    return exportSettings.includeTOC
+      ? markdownEngine.stripAuthoredTOC(activeFile.content)
+      : activeFile.content;
+  }, [activeFile, exportSettings.includeTOC]);
+
   // Generate TOC entries if enabled
   const tocEntries = useMemo(() => {
     if (!activeFile || !exportSettings.includeTOC) {
       return [];
     }
-    return markdownEngine.generateTOC(activeFile.content);
-  }, [activeFile, exportSettings.includeTOC]);
+    return markdownEngine.generateTOC(sourceContent);
+  }, [activeFile, exportSettings.includeTOC, sourceContent]);
 
   // Parse markdown and inject TOC anchors
   const renderedHTML = useMemo(() => {
@@ -22,7 +33,7 @@ export function Preview({ activeFile, exportSettings }: PreviewProps) {
       return '';
     }
 
-    let html = markdownEngine.parse(activeFile.content, {
+    let html = markdownEngine.parse(sourceContent, {
       highlightCode: exportSettings.highlightCode,
       sanitize: exportSettings.sanitizeHTML,
     });
@@ -33,7 +44,7 @@ export function Preview({ activeFile, exportSettings }: PreviewProps) {
     }
 
     return html;
-  }, [activeFile, exportSettings.highlightCode, exportSettings.sanitizeHTML, exportSettings.includeTOC, tocEntries]);
+  }, [activeFile, sourceContent, exportSettings.highlightCode, exportSettings.sanitizeHTML, exportSettings.includeTOC, tocEntries]);
 
   // Get theme styles
   const themeStyles = useMemo(() => {
@@ -217,15 +228,18 @@ export function Preview({ activeFile, exportSettings }: PreviewProps) {
   // Container ref for the rendered markdown, used to render mermaid diagrams.
   const contentRef = useRef<HTMLDivElement>(null);
 
-  // Render any mermaid diagrams present in the rendered HTML. Re-runs when the
-  // content or theme changes (the keyed inner div is recreated on theme change,
-  // which clears previously rendered SVGs so they can be redrawn).
+  // Render mermaid diagrams after every commit. React manages this container's
+  // innerHTML via dangerouslySetInnerHTML and may reset it on re-render (e.g.
+  // when unrelated export settings such as "Minify Output" change), which wipes
+  // the imperatively injected SVG/toolbar. Running on every render (guarded by
+  // the cheap mmd-state check inside renderMermaid, which skips already-rendered
+  // blocks) makes the preview self-heal whenever the DOM is reset.
   useEffect(() => {
     if (!MarkdownEngine.containsMermaid(finalHTML) && !MarkdownEngine.containsMermaid(renderedHTML)) {
       return;
     }
     renderMermaid(contentRef.current, exportSettings.theme);
-  }, [finalHTML, renderedHTML, exportSettings.theme]);
+  });
 
   // Handle TOC link clicks
   const handleTOCClick = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {

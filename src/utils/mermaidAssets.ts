@@ -213,29 +213,43 @@ function __enhanceMermaid(pre, isDark, bg){
  * Build the <script type="module"> block that renders mermaid diagrams in an
  * exported standalone HTML document and attaches the interactive toolbar.
  */
-export function getMermaidExportScript(isDark: boolean, backgroundColor: string): string {
-  const theme = isDark ? 'dark' : 'default';
+/**
+ * Build the <script type="module"> block that renders mermaid diagrams in an
+ * exported standalone HTML document and attaches the interactive toolbar.
+ *
+ * Exposes window.__setMermaidTheme(isDark) so a page-level light/dark toggle
+ * can re-render the diagrams to match the active theme.
+ */
+export function getMermaidExportScript(isDark: boolean, bgLight: string, bgDark: string): string {
   return `<style>${MERMAID_TOOLBAR_CSS}</style>
 <script type="module">
 import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
-mermaid.initialize({ startOnLoad: false, theme: '${theme}', securityLevel: 'loose' });
-const IS_DARK = ${isDark ? 'true' : 'false'};
-const BG = ${JSON.stringify(backgroundColor)};
+const BG_LIGHT = ${JSON.stringify(bgLight)};
+const BG_DARK = ${JSON.stringify(bgDark)};
 ${MERMAID_RUNTIME_JS}
-(async () => {
+async function renderAllMermaid(dark) {
+  mermaid.initialize({ startOnLoad: false, theme: dark ? 'dark' : 'default', securityLevel: 'loose' });
   const blocks = Array.from(document.querySelectorAll('pre.mermaid'));
   for (let i = 0; i < blocks.length; i++) {
     const node = blocks[i];
-    const source = (node.textContent || '').trim();
+    let source = node.getAttribute('data-mmd-src');
+    if (source === null) {
+      source = (node.textContent || '').trim();
+      node.setAttribute('data-mmd-src', source);
+    }
+    node.removeAttribute('data-enhanced');
+    node.classList.remove('mermaid-interactive', 'is-dark');
     try {
-      const out = await mermaid.render('mmd-export-' + i, source);
+      const out = await mermaid.render('mmd-export-' + i + '-' + (dark ? 'd' : 'l'), source);
       node.innerHTML = out.svg;
-      __enhanceMermaid(node, IS_DARK, BG);
+      __enhanceMermaid(node, dark, dark ? BG_DARK : BG_LIGHT);
     } catch (err) {
       console.error('[mermaid] export render failed:', err);
       node.innerHTML = '<div class="mermaid-error">Mermaid diagram could not be rendered: ' + (err && err.message ? err.message : err) + '</div>';
     }
   }
-})();
+}
+window.__setMermaidTheme = function (dark) { renderAllMermaid(!!dark); };
+renderAllMermaid(typeof window.__docThemeDark === 'boolean' ? window.__docThemeDark : ${isDark ? 'true' : 'false'});
 </script>`;
 }

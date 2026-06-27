@@ -289,7 +289,7 @@ ${css}
   private static generateMermaidScript(settings: ExportSettings): string {
     const isDark = ThemeManager.isDarkTheme(settings.theme);
     const backgroundColor = ThemeManager.getThemeStyles(settings.theme).backgroundColor;
-    return getMermaidExportScript(isDark, backgroundColor);
+    return getMermaidExportScript(isDark, backgroundColor, backgroundColor);
   }
 
   /**
