@@ -85,6 +85,11 @@ export const MERMAID_TOOLBAR_CSS = `
   align-items: center;
   justify-content: center;
 }
+.mermaid-interactive:fullscreen .mermaid-canvas {
+  width: 100%;
+  height: 100%;
+}
+.mermaid-interactive:fullscreen .mermaid-canvas > svg { max-width: none; max-height: none; width: 100%; height: 100%; }
 .mermaid-error {
   color: #b91c1c;
   background-color: rgba(239, 68, 68, 0.08);
@@ -205,7 +210,27 @@ function __enhanceMermaid(pre, isDark, bg){
   bSvg.addEventListener('click', () => { try { downloadBlob(new Blob([serializeSvg(svg).xml], { type: 'image/svg+xml' }), 'diagram.svg'); } catch (err) { console.error('SVG export failed:', err); } });
 
   toolbar.appendChild(bIn); toolbar.appendChild(bOut); toolbar.appendChild(bReset); toolbar.appendChild(bFull); toolbar.appendChild(bCopy); toolbar.appendChild(bPng); toolbar.appendChild(bSvg);
-  pre.appendChild(toolbar); pre.appendChild(viewport); apply();
+  pre.appendChild(toolbar); pre.appendChild(viewport);
+
+  var savedState = null;
+  pre.addEventListener('fullscreenchange', function() {
+    if (document.fullscreenElement === pre) {
+      savedState = { scale: scale, tx: tx, ty: ty };
+      svg.style.maxWidth = 'none';
+      svg.style.width = '100%';
+      svg.style.height = '100%';
+      scale = 1; tx = 0; ty = 0;
+      apply();
+    } else {
+      svg.style.maxWidth = '';
+      svg.style.width = '';
+      svg.style.height = '';
+      if (savedState) { scale = savedState.scale; tx = savedState.tx; ty = savedState.ty; savedState = null; }
+      apply();
+    }
+  });
+
+  apply();
 }
 `;
 

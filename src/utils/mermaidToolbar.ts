@@ -283,6 +283,36 @@ export function enhanceMermaidDiagram(pre: HTMLElement, options: EnhanceOptions)
 
   toolbar.append(btnZoomIn, btnZoomOut, btnReset, btnFull, btnCopy, btnPng, btnSvg);
 
+  // Fullscreen state management.
+  let savedState: { scale: number; tx: number; ty: number } | null = null;
+
+  pre.addEventListener('fullscreenchange', () => {
+    if (document.fullscreenElement === pre) {
+      // Entering fullscreen: save state and remove SVG constraints
+      savedState = { scale, tx, ty };
+      svg.style.maxWidth = 'none';
+      svg.style.width = '100%';
+      svg.style.height = '100%';
+      // Reset pan/zoom to fit-to-view
+      scale = 1;
+      tx = 0;
+      ty = 0;
+      apply();
+    } else {
+      // Exiting fullscreen: restore SVG constraints and pan/zoom state
+      svg.style.maxWidth = '';
+      svg.style.width = '';
+      svg.style.height = '';
+      if (savedState) {
+        scale = savedState.scale;
+        tx = savedState.tx;
+        ty = savedState.ty;
+        savedState = null;
+      }
+      apply();
+    }
+  });
+
   pre.appendChild(toolbar);
   pre.appendChild(viewport);
   apply();
