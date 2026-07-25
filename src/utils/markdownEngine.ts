@@ -91,12 +91,29 @@ export class MarkdownEngine {
   parse(markdown: string, options: ParseOptions): string {
     let html = this.marked.parse(markdown) as string;
 
+    // Wrap tables in a horizontally-scrollable container. Combined with the
+    // CSS switch from a forced `width: 100%` to content-based sizing, this
+    // lets small tables hug their content instead of stretching across the
+    // full (now wider) reading column, while wide tables still scroll
+    // instead of overflowing the page.
+    html = this.wrapTables(html);
+
     // Apply sanitization if enabled
     if (options.sanitize) {
       html = this.sanitize(html);
     }
 
     return html;
+  }
+
+  /**
+   * Wrap every top-level <table> in a `.table-wrapper` div so it can scroll
+   * horizontally without forcing the table itself to stretch full-width.
+   */
+  private wrapTables(html: string): string {
+    return html
+      .replace(/<table>/g, '<div class="table-wrapper"><table>')
+      .replace(/<\/table>/g, '</table></div>');
   }
 
   /**

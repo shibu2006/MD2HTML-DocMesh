@@ -120,9 +120,23 @@ export function Preview({ activeFile, exportSettings }: PreviewProps) {
         background-color: ${themeStyles.codeBlockBg} !important;
         ${exportSettings.highlightCode ? `border: 1px solid ${ThemeManager.isDarkTheme(exportSettings.theme) ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'} !important;` : ''}
         border-radius: 5px !important;
+        /* Hug the code block's own width instead of stretching the
+           highlighted background across the full reading column. */
+        width: fit-content !important;
+        max-width: 100% !important;
       }
       .preview-content pre code {
         font-family: monospace !important;
+      }
+      .preview-content .table-wrapper {
+        overflow-x: auto;
+        margin: 1em 0;
+      }
+      .preview-content table {
+        /* Size to content instead of always stretching full width; the
+           wrapper above scrolls horizontally for genuinely wide tables. */
+        width: auto !important;
+        max-width: 100%;
       }
       .preview-content blockquote {
         border-left-color: ${themeStyles.accentColor} !important;
@@ -151,6 +165,11 @@ export function Preview({ activeFile, exportSettings }: PreviewProps) {
         padding: 0 !important;
         text-align: center;
         overflow-x: auto;
+        /* Mermaid's viewport/canvas elements size themselves as percentages
+           of this element for pan/zoom math, so keep it full width (unlike
+           plain code blocks) rather than shrink-wrapping. */
+        width: 100% !important;
+        max-width: 100% !important;
       }
       .preview-content pre.mermaid svg {
         max-width: 100%;

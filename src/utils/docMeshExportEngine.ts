@@ -382,7 +382,11 @@ body {
 .docmesh-content {
   flex: 1;
   padding: 3rem;
-  max-width: 900px;
+  /* Fill ~94% of the available width so content uses most of the screen on
+     high-resolution displays (a % resolves against the flex item's own box,
+     so it never overflows on small screens). The 2400px ceiling only engages
+     on very large 4K/ultra-wide monitors to keep line length readable. */
+  max-width: min(94%, 2400px);
   margin: 0 auto;
 }
 
@@ -443,6 +447,11 @@ body {
   padding: 1rem;
   border-radius: 5px;
   overflow-x: auto;
+  /* Hug the code/diagram's own width instead of stretching the highlighted
+     background across the full content column. Still capped at the column
+     width and scrollable for content that's genuinely wider. */
+  width: fit-content;
+  max-width: 100%;
   border: 1px solid ${ThemeManager.isDarkTheme(settings.theme) ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'};
 }
 
@@ -457,6 +466,11 @@ body {
   padding: 0;
   text-align: center;
   overflow-x: auto;
+  /* Mermaid's own viewport/canvas elements size themselves as percentages of
+     this element for pan/zoom math, so keep it full width (unlike plain
+     code blocks) rather than shrink-wrapping. */
+  width: 100%;
+  max-width: 100%;
 }
 
 .docmesh-content pre.mermaid svg {
@@ -481,10 +495,19 @@ body {
   opacity: 0.8;
 }
 
+.docmesh-content .table-wrapper {
+  overflow-x: auto;
+  margin: 1rem 0;
+}
+
 .docmesh-content table {
   border-collapse: collapse;
-  width: 100%;
-  margin: 1rem 0;
+  /* Size to content instead of always stretching to the full content
+     column; the wrapper above handles horizontal scrolling for tables that
+     are genuinely too wide to fit. */
+  width: auto;
+  max-width: 100%;
+  margin: 0;
 }
 
 .docmesh-content th,

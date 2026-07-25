@@ -248,7 +248,13 @@ body {
 }
 
 body > *:not(.toc-layout) {
-  max-width: 800px;
+  /* Fill ~94% of the available width so content uses most of the screen on
+     high-resolution displays (a % resolves against body's padded content
+     box, so it never overflows on small screens). The 2400px ceiling only
+     engages on very large 4K/ultra-wide monitors to keep line length
+     readable; on typical 1440-2560px screens the percentage wins and the
+     content spans nearly edge to edge. */
+  max-width: min(94%, 2400px);
   margin-left: auto;
   margin-right: auto;
 }
@@ -320,6 +326,11 @@ pre {
   padding: 1rem;
   border-radius: 5px;
   overflow-x: auto;
+  /* Hug the code/diagram's own width instead of stretching the highlighted
+     background across the full (wide) reading column. Still capped at the
+     column width and scrollable for content that's genuinely wider. */
+  width: fit-content;
+  max-width: 100%;
   ${hl ? 'border: 1px solid var(--border);' : ''}
 }
 
@@ -334,6 +345,11 @@ pre.mermaid {
   padding: 0;
   text-align: center;
   overflow-x: auto;
+  /* Mermaid's own viewport/canvas elements size themselves as percentages of
+     this element for pan/zoom math, so keep it full width (unlike plain
+     code blocks) rather than shrink-wrapping. */
+  width: 100%;
+  max-width: 100%;
 }
 
 pre.mermaid svg {
@@ -349,10 +365,19 @@ blockquote {
   opacity: 0.8;
 }
 
+.table-wrapper {
+  overflow-x: auto;
+  margin: 1rem 0;
+}
+
 table {
   border-collapse: collapse;
-  width: 100%;
-  margin: 1rem 0;
+  /* Size to content instead of always stretching to the full (wide) reading
+     column; the wrapper above handles horizontal scrolling for tables that
+     are genuinely too wide to fit. */
+  width: auto;
+  max-width: 100%;
+  margin: 0;
 }
 
 th, td {
@@ -480,7 +505,10 @@ th {
 .toc-layout {
   display: flex;
   gap: 2rem;
-  max-width: 1400px;
+  /* Wider ceiling than the plain content column because this layout also
+     holds the TOC sidebar; fills ~96% on typical screens and only caps on
+     very large monitors. */
+  max-width: min(96%, 2800px);
   margin: 0 auto;
 }
 
