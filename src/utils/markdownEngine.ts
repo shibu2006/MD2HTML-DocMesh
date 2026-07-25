@@ -55,7 +55,11 @@ export class MarkdownEngine {
     // Configure marked options
     this.marked.setOptions({
       gfm: true, // GitHub Flavored Markdown
-      breaks: true, // Convert \n to <br>
+      // Soft-wrapped source lines (editor wrap / fixed column) must reflow with
+      // the viewport. Converting every \n to <br> freezes line length at the
+      // wrap width and leaves unused white space on wide screens. Intentional
+      // breaks still work via CommonMark hard breaks (two trailing spaces).
+      breaks: false,
       pedantic: false,
     });
   }

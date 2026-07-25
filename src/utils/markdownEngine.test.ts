@@ -275,3 +275,41 @@ describe('MarkdownEngine Property-Based Tests', () => {
     );
   });
 });
+
+describe('MarkdownEngine soft-wrap reflow', () => {
+  const engine = new MarkdownEngine();
+
+  it('does not freeze paragraph line length with <br> from soft-wrapped source lines', () => {
+    // Editor soft-wrap / fixed column wraps insert single newlines mid-sentence.
+    // Those must NOT become <br>, or text stays stuck at the wrap width and
+    // leaves unused white space on wide viewports.
+    const markdown = [
+      'Scope: moving Voice Quick Commerce (VQC) from a static-JSON POC to a',
+      'multi-retailer production system serving millions of products per large',
+      'tenant, sourced from heterogeneous retailer systems.',
+      '',
+      '| Concern | Today |',
+      '| --- | --- |',
+      '| Product catalog | catalog.json |',
+    ].join('\n');
+
+    const html = engine.parse(markdown, { highlightCode: false, sanitize: false });
+
+    const paragraphHtml = html.match(/<p>[\s\S]*?<\/p>/)?.[0] ?? '';
+    expect(paragraphHtml).not.toMatch(/<br\s*\/?>/i);
+    expect(paragraphHtml.toLowerCase()).toContain('static-json poc to a');
+    expect(paragraphHtml.toLowerCase()).toContain('multi-retailer production');
+
+    // Tables keep their structure and are unaffected by paragraph break handling.
+    expect(html).toContain('<table>');
+    expect(html).toContain('Product catalog');
+  });
+
+  it('still honors CommonMark hard line breaks (two trailing spaces)', () => {
+    const markdown = 'Status: design  \nAuthor: Malay + AI\n';
+    const html = engine.parse(markdown, { highlightCode: false, sanitize: false });
+    expect(html).toMatch(/<br\s*\/?>/i);
+    expect(html).toContain('Status: design');
+    expect(html).toContain('Author: Malay + AI');
+  });
+});
