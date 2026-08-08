@@ -45,7 +45,8 @@ export class MarkdownEngine {
         code({ text, lang }) {
           const language = (lang || '').trim().split(/\s+/)[0].toLowerCase();
           if (language === 'mermaid') {
-            return `<pre class="mermaid">${MarkdownEngine.escapeHtml(text)}</pre>\n`;
+            const source = MarkdownEngine.normalizeMermaidSource(text);
+            return `<pre class="mermaid">${MarkdownEngine.escapeHtml(source)}</pre>\n`;
           }
           return false;
         }
@@ -76,6 +77,46 @@ export class MarkdownEngine {
       .replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;')
       .replace(/'/g, '&#39;');
+  }
+
+  /**
+   * Normalize Mermaid syntax that is otherwise valid prose but is interpreted
+   * as a sequence-diagram statement separator. This is intentionally limited
+   * to sequence message and note text so other Mermaid diagram types, code
+   * samples, and explicit same-line Mermaid statements remain unchanged.
+   */
+  private static normalizeMermaidSource(source: string): string {
+    if (!/^\s*sequenceDiagram(?:\s|;|$)/m.test(source)) {
+      return source;
+    }
+
+    return source
+      .split('\n')
+      .map((line) => {
+        const message = line.match(
+          /^(\s*.+?(?:-->>|->>|-->|->|--x|-x|--\)|-\))\s*[^:\n]*:)(.*)$/
+        );
+        const note = line.match(
+          /^(\s*Note\s+(?:over|left of|right of)\s+[^:\n]*:)(.*)$/i
+        );
+        const match = message ?? note;
+
+        return match
+          ? `${match[1]}${MarkdownEngine.escapeSequenceLabelSemicolons(match[2])}`
+          : line;
+      })
+      .join('\n');
+  }
+
+  /**
+   * Mermaid accepts #59; as a literal semicolon. Keep a semicolon unchanged
+   * only when it is immediately followed by an explicit next statement.
+   */
+  private static escapeSequenceLabelSemicolons(text: string): string {
+    return text.replace(
+      /;(?!\s*(?:(?:[A-Za-z_][\w.-]*\s*(?:-->>|->>|-->|->|--x|-x|--\)|-\)))|Note\s+(?:over|left of|right of)\b|(?:alt|else|opt|loop|par|and|critical|option|break|rect|end|activate|deactivate|create|destroy|autonumber)\b))/gi,
+      '#59;'
+    );
   }
 
   /**
