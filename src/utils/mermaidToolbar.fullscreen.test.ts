@@ -5,8 +5,10 @@
  *
  * This test encodes the EXPECTED behavior after the bug is fixed:
  * - SVG `max-width` constraint should be removed on fullscreen entry
- * - SVG should fill the fullscreen viewport (width/height 100%)
- * - Pan/zoom state should reset to fit-to-view on fullscreen entry
+ * - SVG should render at its intrinsic viewBox size (same resolution as PNG
+ *   export), not be stretched to width/height 100% (which shrinks a large
+ *   diagram and then CSS-upscales a low-res compositor layer → blur)
+ * - Pan/zoom state should reset on fullscreen entry
  *
  * EXPECTED OUTCOME ON UNFIXED CODE: Test FAILS because:
  * - No `fullscreenchange` listener exists
@@ -85,16 +87,33 @@ describe('Bug Condition Exploration: Mermaid SVG Blurry in Fullscreen', () => {
     expect(enhancedSvg.style.maxWidth).toBe('none');
   });
 
-  it('should set SVG width and height to 100% on fullscreen entry', () => {
+  it('should size the SVG to its viewBox on fullscreen entry (native resolution)', () => {
     const canvas = pre.querySelector('.mermaid-canvas') as HTMLElement;
     const enhancedSvg = canvas.querySelector('svg') as SVGSVGElement;
 
-    // Simulate fullscreen entry
     simulateFullscreenEntry(pre);
 
-    // Bug Condition Check: SVG should fill the viewport
-    expect(enhancedSvg.style.width).toBe('100%');
-    expect(enhancedSvg.style.height).toBe('100%');
+    // Stretching to 100% shrinks a 4000px diagram into the screen and the
+    // compositor then rasterizes that small bitmap — zooming looks blurry.
+    // Native viewBox pixels match PNG export and stay sharp.
+    expect(enhancedSvg.style.width).toBe('800px');
+    expect(enhancedSvg.style.height).toBe('400px');
+    expect(enhancedSvg.style.maxWidth).toBe('none');
+  });
+
+  it('should zoom fullscreen diagrams by resizing the SVG, not CSS scale()', () => {
+    const canvas = pre.querySelector('.mermaid-canvas') as HTMLElement;
+    const enhancedSvg = canvas.querySelector('svg') as SVGSVGElement;
+    const zoomIn = pre.querySelector('button[aria-label="Zoom in"]') as HTMLButtonElement;
+
+    simulateFullscreenEntry(pre);
+    zoomIn.click();
+
+    // 800 * 1.2, 400 * 1.2 — vector re-raster at the new size, stays sharp.
+    expect(enhancedSvg.style.width).toBe('960px');
+    expect(enhancedSvg.style.height).toBe('480px');
+    expect(canvas.style.transform).toMatch(/^translate\(/);
+    expect(canvas.style.transform).not.toMatch(/scale\(/);
   });
 
   it('should reset pan/zoom state on fullscreen entry', () => {
@@ -104,15 +123,14 @@ describe('Bug Condition Exploration: Mermaid SVG Blurry in Fullscreen', () => {
     // First, zoom in to change the pan/zoom state
     simulateWheelZoom(viewport, -100, 3); // Zoom in 3 times
 
-    // Verify transform has changed from default
-    const transformBefore = canvas.style.transform;
-    expect(transformBefore).not.toBe('translate(0px, 0px) scale(1)');
+    const svgBefore = canvas.querySelector('svg') as SVGSVGElement;
+    expect(svgBefore.style.width).not.toBe('800px');
 
     // Simulate fullscreen entry
     simulateFullscreenEntry(pre);
 
-    // Bug Condition Check: pan/zoom should reset
-    expect(canvas.style.transform).toBe('translate(0px, 0px) scale(1)');
+    // Bug Condition Check: pan/zoom should reset (fullscreen uses translate only)
+    expect(canvas.style.transform).toBe('translate(0px, 0px)');
   });
 
   /**
@@ -163,16 +181,79 @@ describe('Bug Condition Exploration: Mermaid SVG Blurry in Fullscreen', () => {
           });
           testPre.dispatchEvent(new Event('fullscreenchange', { bubbles: true }));
 
-          // Assert: SVG constraints removed
+          // Assert: SVG constraints removed; sized to viewBox, not 100%
           expect(enhancedSvg.style.maxWidth).toBe('none');
-          expect(enhancedSvg.style.width).toBe('100%');
-          expect(enhancedSvg.style.height).toBe('100%');
+          expect(enhancedSvg.style.width).toBe('800px');
+          expect(enhancedSvg.style.height).toBe('400px');
 
-          // Assert: pan/zoom reset
-          expect(canvas.style.transform).toBe('translate(0px, 0px) scale(1)');
+          // Assert: pan reset; fullscreen zoom uses SVG resize, not CSS scale
+          expect(canvas.style.transform).toBe('translate(0px, 0px)');
         }
       ),
       { numRuns: 50 } // Run with 50 random states
     );
+  });
+});
+
+describe('In-page zoom sharpness and surface color', () => {
+  afterEach(() => {
+    document.body.innerHTML = '';
+    vi.restoreAllMocks();
+  });
+
+  function mount(backgroundColor: string, isDark: boolean) {
+    const pre = document.createElement('pre');
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('viewBox', '0 0 800 400');
+    svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+    pre.appendChild(svg);
+    document.body.appendChild(pre);
+    enhanceMermaidDiagram(pre, { isDark, backgroundColor });
+    return pre;
+  }
+
+  it('replaces mermaid width="100%" so in-page zoom is not clamped to the column', () => {
+    const pre = document.createElement('pre');
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('viewBox', '0 0 800 400');
+    svg.setAttribute('width', '100%');
+    svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+    pre.appendChild(svg);
+    document.body.appendChild(pre);
+    enhanceMermaidDiagram(pre, { isDark: false, backgroundColor: '#ffffff' });
+
+    const live = pre.querySelector('.mermaid-canvas > svg') as SVGSVGElement;
+    const zoomIn = pre.querySelector('button[aria-label="Zoom in"]') as HTMLButtonElement;
+    zoomIn.click();
+
+    // Mermaid ships width="100%". If that attribute stays, the SVG is a
+    // percentage of the viewport and zoom-in/out look like no-ops.
+    expect(live.getAttribute('width')).toBe('960');
+    expect(live.getAttribute('height')).toBe('480');
+    expect(live.style.maxWidth).toBe('none');
+  });
+
+  it('zooms in-page by resizing the SVG instead of CSS scale()', () => {
+    const pre = mount('#ffffff', false);
+    const canvas = pre.querySelector('.mermaid-canvas') as HTMLElement;
+    const svg = canvas.querySelector('svg') as SVGSVGElement;
+    const zoomIn = pre.querySelector('button[aria-label="Zoom in"]') as HTMLButtonElement;
+
+    zoomIn.click();
+
+    expect(svg.style.width).toBe('960px');
+    expect(svg.style.height).toBe('480px');
+    expect(canvas.style.transform).toMatch(/^translate\(/);
+    expect(canvas.style.transform).not.toMatch(/scale\(/);
+  });
+
+  it('paints the viewport with the diagram surface color, not a dark chrome backdrop', () => {
+    const pre = mount('#ffffff', true);
+    const viewport = pre.querySelector('.mermaid-viewport') as HTMLElement;
+    const canvas = pre.querySelector('.mermaid-canvas') as HTMLElement;
+
+    expect(viewport.style.backgroundColor.replace(/\s/g, '')).toMatch(/#ffffff|rgb\(255,255,255\)/i);
+    expect(canvas.style.backgroundColor.replace(/\s/g, '')).toMatch(/#ffffff|rgb\(255,255,255\)/i);
+    expect(pre.style.getPropertyValue('--mermaid-surface')).toBe('#ffffff');
   });
 });

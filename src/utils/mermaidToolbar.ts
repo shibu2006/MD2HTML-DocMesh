@@ -151,21 +151,56 @@ export function enhanceMermaidDiagram(pre: HTMLElement, options: EnhanceOptions)
     pre.classList.add('is-dark');
   }
 
+  // Keep the paper color of the unzoomed diagram (export theme / preview).
+  // Fullscreen used to fall through Preview's `background: transparent
+  // !important` onto the browser's black fullscreen backdrop.
+  const surface = options.backgroundColor || '#ffffff';
+  pre.style.setProperty('--mermaid-surface', surface);
+
   // Build viewport + canvas around the existing SVG.
   const viewport = document.createElement('div');
   viewport.className = 'mermaid-viewport';
   const canvas = document.createElement('div');
   canvas.className = 'mermaid-canvas';
+  viewport.style.backgroundColor = surface;
+  canvas.style.backgroundColor = surface;
   canvas.appendChild(svg);
   viewport.appendChild(canvas);
 
-  // Pan/zoom state.
+  // Intrinsic size is the mermaid viewBox (same pixels PNG export uses).
+  // Zoom always resizes the SVG so the browser re-rasters vectors. CSS
+  // scale() of a shrink-to-fit SVG is what made in-page zoom look blurry.
+  const intrinsic = getSvgSize(svg);
   let scale = 1;
   let tx = 0;
   let ty = 0;
 
+  const isFullscreen = () => document.fullscreenElement === pre;
+
   const apply = () => {
-    canvas.style.transform = `translate(${tx}px, ${ty}px) scale(${scale})`;
+    const fs = isFullscreen();
+    const vw = viewport.clientWidth;
+    // Inline: fit the column at scale=1. Fullscreen / no layout: 1 mermaid
+    // unit = 1 CSS pixel (native, same as the PNG).
+    const base = fs || !vw ? 1 : Math.min(1, vw / intrinsic.width);
+    const draw = base * scale;
+    const drawW = Math.round(intrinsic.width * draw);
+    const drawH = Math.round(intrinsic.height * draw);
+    // Replace mermaid's width="100%" / height="auto" so the SVG is not a
+    // percentage of the column (that made in-page zoom look like a no-op).
+    svg.setAttribute('width', String(drawW));
+    svg.setAttribute('height', String(drawH));
+    svg.style.maxWidth = 'none';
+    svg.style.maxHeight = 'none';
+    svg.style.width = `${drawW}px`;
+    svg.style.height = `${drawH}px`;
+    svg.style.flexShrink = '0';
+    canvas.style.transform = `translate(${tx}px, ${ty}px)`;
+    if (!fs && vw) {
+      viewport.style.height = `${Math.max(1, Math.round(intrinsic.height * base))}px`;
+    } else if (fs) {
+      viewport.style.height = '';
+    }
   };
 
   const zoomAt = (factor: number, originX: number, originY: number) => {
@@ -288,19 +323,14 @@ export function enhanceMermaidDiagram(pre: HTMLElement, options: EnhanceOptions)
 
   pre.addEventListener('fullscreenchange', () => {
     if (document.fullscreenElement === pre) {
-      // Entering fullscreen: save state and remove SVG constraints
       savedState = { scale, tx, ty };
-      svg.style.maxWidth = 'none';
-      svg.style.width = '100%';
-      svg.style.height = '100%';
-      // Reset pan/zoom to fit-to-view
       scale = 1;
       tx = 0;
       ty = 0;
       apply();
     } else {
-      // Exiting fullscreen: restore SVG constraints and pan/zoom state
       svg.style.maxWidth = '';
+      svg.style.maxHeight = '';
       svg.style.width = '';
       svg.style.height = '';
       if (savedState) {

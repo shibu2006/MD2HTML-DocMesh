@@ -21,11 +21,10 @@ export const MERMAID_TOOLBAR_CSS = `
 .mermaid-viewport.is-grabbing { cursor: grabbing; }
 .mermaid-canvas {
   transform-origin: 0 0;
-  display: flex;
-  justify-content: center;
-  will-change: transform;
+  display: block;
+  width: max-content;
 }
-.mermaid-canvas > svg { max-width: 100%; height: auto; }
+.mermaid-canvas > svg { max-width: none; height: auto; display: block; flex-shrink: 0; }
 .mermaid-toolbar {
   position: absolute;
   top: 8px;
@@ -71,13 +70,12 @@ export const MERMAID_TOOLBAR_CSS = `
   stroke-linejoin: round;
 }
 .mermaid-interactive:fullscreen {
-  background: #ffffff;
+  background: var(--mermaid-surface, #ffffff) !important;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 2rem;
 }
-.mermaid-interactive.is-dark:fullscreen { background: #1e1e1e; }
 .mermaid-interactive:fullscreen .mermaid-viewport {
   width: 100%;
   height: 100%;
@@ -86,10 +84,10 @@ export const MERMAID_TOOLBAR_CSS = `
   justify-content: center;
 }
 .mermaid-interactive:fullscreen .mermaid-canvas {
-  width: 100%;
-  height: 100%;
+  width: auto;
+  height: auto;
 }
-.mermaid-interactive:fullscreen .mermaid-canvas > svg { max-width: none; max-height: none; width: 100%; height: 100%; }
+.mermaid-interactive:fullscreen .mermaid-canvas > svg { max-width: none; max-height: none; width: auto; height: auto; }
 .mermaid-error {
   color: #b91c1c;
   background-color: rgba(239, 68, 68, 0.08);
@@ -161,12 +159,38 @@ function __enhanceMermaid(pre, isDark, bg){
   pre.classList.add('mermaid-interactive');
   if (isDark) pre.classList.add('is-dark');
 
+  const surface = bg || '#ffffff';
+  pre.style.setProperty('--mermaid-surface', surface);
   const viewport = document.createElement('div'); viewport.className = 'mermaid-viewport';
   const canvas = document.createElement('div'); canvas.className = 'mermaid-canvas';
+  viewport.style.backgroundColor = surface;
+  canvas.style.backgroundColor = surface;
   canvas.appendChild(svg); viewport.appendChild(canvas);
 
+  const intrinsic = getSvgSize(svg);
   let scale = 1, tx = 0, ty = 0;
-  const apply = () => { canvas.style.transform = 'translate(' + tx + 'px,' + ty + 'px) scale(' + scale + ')'; };
+  const isFs = () => document.fullscreenElement === pre;
+  const apply = () => {
+    const fs = isFs();
+    const vw = viewport.clientWidth;
+    const base = fs || !vw ? 1 : Math.min(1, vw / intrinsic.width);
+    const draw = base * scale;
+    const drawW = Math.round(intrinsic.width * draw);
+    const drawH = Math.round(intrinsic.height * draw);
+    svg.setAttribute('width', String(drawW));
+    svg.setAttribute('height', String(drawH));
+    svg.style.maxWidth = 'none';
+    svg.style.maxHeight = 'none';
+    svg.style.width = drawW + 'px';
+    svg.style.height = drawH + 'px';
+    svg.style.flexShrink = '0';
+    canvas.style.transform = 'translate(' + tx + 'px,' + ty + 'px)';
+    if (!fs && vw) {
+      viewport.style.height = Math.max(1, Math.round(intrinsic.height * base)) + 'px';
+    } else if (fs) {
+      viewport.style.height = '';
+    }
+  };
   const zoomAt = (f, ox, oy) => {
     const ns = clamp(scale * f, MIN_SCALE, MAX_SCALE);
     tx = ox - ((ox - tx) / scale) * ns;
@@ -216,13 +240,11 @@ function __enhanceMermaid(pre, isDark, bg){
   pre.addEventListener('fullscreenchange', function() {
     if (document.fullscreenElement === pre) {
       savedState = { scale: scale, tx: tx, ty: ty };
-      svg.style.maxWidth = 'none';
-      svg.style.width = '100%';
-      svg.style.height = '100%';
       scale = 1; tx = 0; ty = 0;
       apply();
     } else {
       svg.style.maxWidth = '';
+      svg.style.maxHeight = '';
       svg.style.width = '';
       svg.style.height = '';
       if (savedState) { scale = savedState.scale; tx = savedState.tx; ty = savedState.ty; savedState = null; }

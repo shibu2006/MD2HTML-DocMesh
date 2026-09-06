@@ -173,14 +173,11 @@ describe('Preservation: Non-Fullscreen Pan/Zoom and Toolbar Behavior', () => {
               expectedScale = clamp(expectedScale * 1.2, MIN_SCALE, MAX_SCALE);
             }
 
-            // Verify the transform contains the correct scale
-            const transform = canvas.style.transform;
-            const scaleMatch = transform.match(/scale\(([\d.e+-]+)\)/);
-            expect(scaleMatch).not.toBeNull();
-            const actualScale = parseFloat(scaleMatch![1]);
-
-            // The scale should match the expected formula
-            expect(Math.abs(actualScale - expectedScale)).toBeLessThan(1e-10);
+            // Zoom resizes the SVG (vector) rather than CSS scale()
+            const svgEl = canvas.querySelector('svg') as SVGSVGElement;
+            expect(svgEl.style.width).toBe(`${Math.round(800 * expectedScale)}px`);
+            expect(canvas.style.transform).toMatch(/^translate\(/);
+            expect(canvas.style.transform).not.toMatch(/scale\(/);
           }
         ),
         { numRuns: 30 }
@@ -226,14 +223,12 @@ describe('Preservation: Non-Fullscreen Pan/Zoom and Toolbar Behavior', () => {
               viewport.dispatchEvent(event);
             }
 
-            // Parse the resulting scale from the transform
-            const transform = canvas.style.transform;
-            const scaleMatch = transform.match(/scale\(([\d.e+-]+)\)/);
-            expect(scaleMatch).not.toBeNull();
-
-            const actualScale = parseFloat(scaleMatch![1]);
+            const svgEl = canvas.querySelector('svg') as SVGSVGElement;
+            const width = parseFloat(svgEl.style.width);
+            const actualScale = width / 800;
             expect(actualScale).toBeGreaterThanOrEqual(MIN_SCALE - 1e-10);
             expect(actualScale).toBeLessThanOrEqual(MAX_SCALE + 1e-10);
+            expect(canvas.style.transform).not.toMatch(/scale\(/);
           }
         ),
         { numRuns: 30 }
@@ -294,62 +289,59 @@ describe('Preservation: Non-Fullscreen Pan/Zoom and Toolbar Behavior', () => {
               }
             }
 
-            // With zoomCenter at origin (0, 0) in happy-dom, tx and ty stay 0
-            const expectedTransform = `translate(0px, 0px) scale(${expectedScale})`;
-            expect(canvas.style.transform).toBe(expectedTransform);
+            const svgEl = canvas.querySelector('svg') as SVGSVGElement;
+            expect(svgEl.style.width).toBe(`${Math.round(800 * expectedScale)}px`);
+            expect(canvas.style.transform).toBe('translate(0px, 0px)');
           }
         ),
         { numRuns: 50 }
       );
     });
 
-    it('should reset transform to translate(0px, 0px) scale(1) on reset button click', () => {
+    it('should reset SVG size to the viewBox on reset button click', () => {
       const canvas = pre.querySelector('.mermaid-canvas') as HTMLElement;
+      const svgEl = canvas.querySelector('svg') as SVGSVGElement;
       const btnZoomIn = getToolbarButton('Zoom in');
       const btnReset = getToolbarButton('Reset view');
 
-      // Zoom in several times
       btnZoomIn.click();
       btnZoomIn.click();
       btnZoomIn.click();
 
-      // Verify transform changed
-      expect(canvas.style.transform).not.toBe('translate(0px, 0px) scale(1)');
+      expect(svgEl.style.width).not.toBe('800px');
 
-      // Reset
       btnReset.click();
 
-      expect(canvas.style.transform).toBe('translate(0px, 0px) scale(1)');
+      expect(svgEl.style.width).toBe('800px');
+      expect(canvas.style.transform).toBe('translate(0px, 0px)');
     });
   });
 
   describe('SVG Initial Styling Preservation', () => {
     /**
-     * In non-fullscreen view, the SVG gets its `max-width: 100%` from the CSS rule
-     * `.mermaid-canvas > svg { max-width: 100%; height: auto; }` injected via stylesheet.
-     * The SVG itself should NOT have inline style overrides in normal view.
+     * The canvas SVG must not be max-width: 100% or in-page zoom is clamped
+     * to the column and the buttons look like no-ops.
      *
      * **Validates: Requirements 3.3, 3.5**
      */
-    it('should not have inline max-width style on SVG in normal view', () => {
+    it('should size the SVG to its viewBox at rest in jsdom (no layout width)', () => {
       const canvas = pre.querySelector('.mermaid-canvas') as HTMLElement;
       const enhancedSvg = canvas.querySelector('svg') as SVGSVGElement;
 
-      // In normal (non-fullscreen) view, SVG should not have inline max-width
-      // The max-width: 100% comes from the stylesheet, not inline styles
-      expect(enhancedSvg.style.maxWidth).toBe('');
+      expect(enhancedSvg.style.width).toBe('800px');
+      expect(enhancedSvg.style.height).toBe('400px');
     });
 
-    it('should have initial transform of translate(0px, 0px) scale(1)', () => {
+    it('should have initial transform of translate(0px, 0px)', () => {
       const canvas = pre.querySelector('.mermaid-canvas') as HTMLElement;
-      expect(canvas.style.transform).toBe('translate(0px, 0px) scale(1)');
+      expect(canvas.style.transform).toBe('translate(0px, 0px)');
     });
 
     it('should inject mermaid-toolbar-styles stylesheet', () => {
       const styleEl = document.getElementById('mermaid-toolbar-styles');
       expect(styleEl).not.toBeNull();
       expect(styleEl!.textContent).toContain('.mermaid-canvas > svg');
-      expect(styleEl!.textContent).toContain('max-width: 100%');
+      expect(styleEl!.textContent).toContain('max-width: none');
     });
   });
 });
