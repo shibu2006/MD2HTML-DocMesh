@@ -1,6 +1,6 @@
 import { useMemo, useEffect, useRef } from 'react';
 import type { MarkdownFile, ExportSettings } from '../types';
-import { markdownEngine, ThemeManager, renderMermaid, MarkdownEngine } from '../utils';
+import { markdownEngine, ThemeManager, renderMermaid, MarkdownEngine, resolveAppearance, scopeClonedStylesheet } from '../utils';
 
 interface PreviewProps {
   activeFile: MarkdownFile | undefined;
@@ -46,32 +46,9 @@ export function Preview({ activeFile, exportSettings }: PreviewProps) {
     return html;
   }, [activeFile, sourceContent, exportSettings.highlightCode, exportSettings.sanitizeHTML, exportSettings.includeTOC, tocEntries]);
 
-  // Get theme styles
-  const themeStyles = useMemo(() => {
-    return ThemeManager.getThemeStyles(exportSettings.theme);
-  }, [exportSettings.theme]);
-
-  // Get font family CSS value
-  const getFontFamily = (fontFamily: ExportSettings['fontFamily']): string => {
-    switch (fontFamily) {
-      case 'system':
-        return '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
-      case 'inter':
-        return '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-      case 'roboto':
-        return '"Roboto", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
-      case 'open-sans':
-        return '"Open Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-      case 'merriweather':
-        return '"Merriweather", Georgia, Cambria, "Times New Roman", Times, serif';
-      case 'fira-code':
-        return '"Fira Code", "Courier New", Courier, monospace';
-      case 'monospace':
-        return '"Courier New", Courier, monospace';
-      default:
-        return '-apple-system, BlinkMacSystemFont, sans-serif';
-    }
-  };
+  // Resolve the selected base theme together with any cloned appearance.
+  const appearance = useMemo(() => resolveAppearance(exportSettings), [exportSettings]);
+  const themeStyles = appearance.colors;
 
   // Get font size CSS value
   const getFontSize = (fontSize: ExportSettings['fontSize']): string => {
@@ -91,14 +68,28 @@ export function Preview({ activeFile, exportSettings }: PreviewProps) {
 
   // Generate custom CSS for theme colors, fonts, and sizes
   const customCSS = useMemo(() => {
-    const fontFamily = getFontFamily(exportSettings.fontFamily);
     const fontSize = getFontSize(exportSettings.fontSize);
 
-    let css = `
+    const clonedCss = appearance.clonedCss;
+    let css = clonedCss ? `
       .preview-content {
-        font-family: ${fontFamily} !important;
+        font-family: ${appearance.fontFamily};
+        font-size: ${fontSize};
+        line-height: ${appearance.lineHeight};
+        color: var(--ink, ${themeStyles.textColor});
+      }
+      .preview-content :is(h1, h2, h3, h4, h5, h6) {
+        color: var(--ink, ${appearance.headingColor});
+        font-family: var(--heading-font, ${appearance.headingFontFamily});
+      }
+      .preview-content :is(p, li, td) {
+        color: var(--ink-soft, var(--ink, ${themeStyles.textColor}));
+      }
+    ` : `
+      .preview-content {
+        font-family: ${appearance.fontFamily} !important;
         font-size: ${fontSize} !important;
-        line-height: 1.6 !important;
+        line-height: ${appearance.lineHeight} !important;
       }
       .preview-content h1,
       .preview-content h2,
@@ -106,10 +97,12 @@ export function Preview({ activeFile, exportSettings }: PreviewProps) {
       .preview-content h4,
       .preview-content h5,
       .preview-content h6 {
-        color: ${themeStyles.accentColor} !important;
+        color: ${appearance.headingColor} !important;
+        font-family: ${appearance.headingFontFamily} !important;
+        font-weight: ${appearance.headingFontWeight} !important;
       }
       .preview-content a {
-        color: ${themeStyles.accentColor} !important;
+        color: ${appearance.linkColor} !important;
       }
       .preview-content code {
         background-color: ${themeStyles.codeBlockBg} !important;
@@ -118,8 +111,8 @@ export function Preview({ activeFile, exportSettings }: PreviewProps) {
       }
       .preview-content pre {
         background-color: ${themeStyles.codeBlockBg} !important;
-        ${exportSettings.highlightCode ? `border: 1px solid ${ThemeManager.isDarkTheme(exportSettings.theme) ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'} !important;` : ''}
-        border-radius: 5px !important;
+        ${exportSettings.highlightCode ? `border: 1px solid ${appearance.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'} !important;` : ''}
+        border-radius: ${appearance.borderRadius} !important;
         /* Hug the code block's own width instead of stretching the
            highlighted background across the full reading column. */
         width: fit-content !important;
@@ -137,13 +130,24 @@ export function Preview({ activeFile, exportSettings }: PreviewProps) {
            wrapper above scrolls horizontally for genuinely wide tables. */
         width: auto !important;
         max-width: 100%;
+        border-collapse: collapse !important;
+      }
+      .preview-content th,
+      .preview-content td {
+        border: 1px solid ${appearance.tableBorderColor} !important;
+        padding: 0.55rem 0.75rem !important;
+        color: ${themeStyles.textColor} !important;
+      }
+      .preview-content th {
+        background-color: ${appearance.tableHeaderBg} !important;
+        color: ${appearance.tableHeaderColor} !important;
       }
       .preview-content blockquote {
         border-left-color: ${themeStyles.accentColor} !important;
       }
       .preview-content strong,
       .preview-content b {
-        color: ${themeStyles.accentColor} !important;
+        color: ${themeStyles.textColor} !important;
         font-weight: 700 !important;
       }
       .preview-content ol,
@@ -154,11 +158,14 @@ export function Preview({ activeFile, exportSettings }: PreviewProps) {
         color: ${themeStyles.textColor} !important;
       }
       .preview-content li::marker {
-        color: ${themeStyles.accentColor} !important;
+        color: ${appearance.linkColor} !important;
       }
       .preview-content p {
         color: ${themeStyles.textColor} !important;
       }
+    `;
+
+    css += `
       .preview-content pre.mermaid {
         background-color: transparent !important;
         border: none !important;
@@ -171,8 +178,14 @@ export function Preview({ activeFile, exportSettings }: PreviewProps) {
         width: 100% !important;
         max-width: 100% !important;
       }
+      /* Fullscreen must not stay transparent — that lets the browser's
+         black fullscreen backdrop show through. Use the same paper color
+         as the unzoomed diagram. */
+      .preview-content pre.mermaid:fullscreen {
+        background-color: var(--mermaid-surface, ${themeStyles.backgroundColor}) !important;
+      }
       .preview-content pre.mermaid svg {
-        max-width: 100%;
+        max-width: none;
         height: auto;
       }
       .preview-content .mermaid-error {
@@ -196,11 +209,30 @@ export function Preview({ activeFile, exportSettings }: PreviewProps) {
     `;
 
     if (exportSettings.highlightCode) {
-      css += ThemeManager.getSyntaxHighlightingCSS(exportSettings.theme);
+      css += ThemeManager.getSyntaxHighlightingCSS(appearance.isDark
+        ? 'github-dark'
+        : 'github-light');
+    }
+
+    if (appearance.clonedCss) {
+      css += `\n${scopeClonedStylesheet(appearance.clonedCss, '.preview-content')}\n`;
+    }
+
+    if (appearance.isDark) {
+      css += `
+      /* Readable on dark paper — beat Tailwind prose-slate and light-theme cloned links/code */
+      .preview-content a {
+        color: ${appearance.linkColor} !important;
+      }
+      .preview-content :not(pre) > code {
+        color: ${themeStyles.textColor} !important;
+        background-color: ${themeStyles.codeBlockBg} !important;
+      }
+    `;
     }
 
     return css;
-  }, [themeStyles, exportSettings.fontFamily, exportSettings.fontSize, exportSettings.highlightCode, exportSettings.theme]);
+  }, [appearance, themeStyles, exportSettings.fontSize, exportSettings.highlightCode]);
 
   // Generate TOC HTML for top position
   const tocHTML = useMemo(() => {
@@ -301,7 +333,7 @@ export function Preview({ activeFile, exportSettings }: PreviewProps) {
 
         {/* Content */}
         <div
-          className="flex-1 p-6 overflow-y-auto prose prose-slate max-w-none transition-colors duration-300 preview-content"
+          className={`flex-1 p-6 overflow-y-auto prose ${appearance.isDark ? 'prose-invert' : 'prose-slate'} max-w-none transition-colors duration-300 preview-content`}
           style={{
             backgroundColor: themeStyles.backgroundColor,
             color: themeStyles.textColor,
@@ -317,7 +349,7 @@ export function Preview({ activeFile, exportSettings }: PreviewProps) {
   // Render with top TOC or no TOC
   return (
     <div
-      className="p-6 overflow-y-auto prose prose-slate max-w-none transition-colors duration-300 preview-content"
+      className={`p-6 overflow-y-auto prose ${appearance.isDark ? 'prose-invert' : 'prose-slate'} max-w-none transition-colors duration-300 preview-content`}
       style={{
         backgroundColor: themeStyles.backgroundColor,
         color: themeStyles.textColor,

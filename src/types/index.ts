@@ -7,6 +7,27 @@ export interface MarkdownFile {
   uploadDate: Date;
 }
 
+export interface ClonedStyle {
+  sourceType: 'url' | 'file';
+  sourceLabel: string;
+  colors: ThemeStyles;
+  headingColor?: string;
+  linkColor?: string;
+  borderColor?: string;
+  tableHeaderBg?: string;
+  tableHeaderColor?: string;
+  tableBorderColor?: string;
+  fontFamily?: string;
+  headingFontFamily?: string;
+  lineHeight?: string;
+  headingFontWeight?: string;
+  borderRadius?: string;
+  clonedCss?: string;
+  isDark: boolean;
+  stylesheetCount: number;
+  warnings?: string[];
+}
+
 export interface ExportSettings {
   outputFormat: 'html5-complete' | 'html-fragment';
   theme: 'github-light' | 'github-dark' | 'dracula' | 'monokai' | 'sky-blue' | 'solarized-light' | 'nord';
@@ -18,6 +39,7 @@ export interface ExportSettings {
   includeCSS: boolean;
   minifyOutput: boolean;
   highlightCode: boolean;
+  clonedStyle?: ClonedStyle;
 }
 
 export interface AppState {

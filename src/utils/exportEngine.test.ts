@@ -431,4 +431,27 @@ describe('ExportEngine', () => {
       );
     });
   });
+
+  it('includes cloned source CSS in the downloaded HTML', () => {
+    const file = createMarkdownFile('lifecycle.md', '# Voice Turn Lifecycle\n');
+    const html = ExportEngine.generateHTML(file, createExportSettings({
+      highlightCode: false,
+      clonedStyle: {
+        sourceType: 'file',
+        sourceLabel: 'Voice Turn Lifecycle.html',
+        colors: {
+          backgroundColor: '#0E1218',
+          textColor: '#E7ECF1',
+          accentColor: '#52B4BF',
+          codeBlockBg: '#0A0E13',
+        },
+        clonedCss: 'h1 { font-size: 3rem; } .eyebrow { color: #52B4BF; }',
+        isDark: true,
+        stylesheetCount: 1,
+      },
+    }));
+
+    expect(html).toContain('h1 { font-size: 3rem; }');
+    expect(html).toContain('.eyebrow { color: #52B4BF; }');
+  });
 });

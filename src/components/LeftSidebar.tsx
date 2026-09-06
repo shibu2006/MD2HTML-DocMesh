@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Search, Upload, Trash2, X, ChevronLeft, ChevronRight, FileText, Network, Layers, FolderTree } from 'lucide-react';
-import type { MarkdownFile, DocMesh, HtmlFile } from '../types';
+import type { MarkdownFile, DocMesh, HtmlFile, ClonedStyle } from '../types';
 import { formatFileSize } from '../utils/fileManager';
 import { Tooltip } from './Tooltip';
+import { CloneStyleSection } from './CloneStyleSection';
 
 interface FileItemProps {
   file: MarkdownFile;
@@ -75,6 +76,8 @@ interface LeftSidebarProps {
   onFileDelete: (fileId: string) => void;
   onUpload: (files: File[]) => void;
   onClearAll: () => void;
+  clonedStyle?: ClonedStyle;
+  onClonedStyleChange?: (style: ClonedStyle | undefined) => void;
 
   // DocMesh mode props
   appMode: 'markdown' | 'docmesh';
@@ -93,6 +96,8 @@ export function LeftSidebar({
   onFileDelete,
   onUpload,
   onClearAll,
+  clonedStyle,
+  onClonedStyleChange,
   appMode,
   onAppModeChange,
   currentMesh,
@@ -177,6 +182,10 @@ export function LeftSidebar({
               </button>
             </div>
           </div>
+
+          {onClonedStyleChange && (
+            <CloneStyleSection value={clonedStyle} onChange={onClonedStyleChange} />
+          )}
 
           {/* Conditional Content Based on Mode */}
           {appMode === 'markdown' ? (

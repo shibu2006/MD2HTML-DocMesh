@@ -221,4 +221,148 @@ describe('Preview Property-Based Tests', () => {
       { numRuns: 50 }
     );
   });
+
+  it('paints cloned heading, link, and table colors instead of a generic accent', () => {
+    const mockFile: MarkdownFile = {
+      id: 'clone-preview',
+      name: 'trace.md',
+      content: '# Voice search\n\nSee [docs](#docs).\n\n| Field | Value |\n| --- | --- |\n| turn | 1 |\n',
+      size: 80,
+      uploadDate: new Date(),
+    };
+
+    const exportSettings: ExportSettings = {
+      outputFormat: 'html5-complete',
+      theme: 'github-dark',
+      fontFamily: 'system',
+      fontSize: 'medium',
+      includeTOC: false,
+      tocPosition: 'left-sidebar',
+      sanitizeHTML: true,
+      includeCSS: true,
+      minifyOutput: false,
+      highlightCode: false,
+      clonedStyle: {
+        sourceType: 'file',
+        sourceLabel: 'Voice Turn Lifecycle.html',
+        colors: {
+          backgroundColor: '#0f172a',
+          textColor: '#e2e8f0',
+          accentColor: '#0b1220',
+          codeBlockBg: '#1e293b',
+        },
+        headingColor: '#38bdf8',
+        linkColor: '#38bdf8',
+        tableHeaderBg: '#1e293b',
+        tableHeaderColor: '#f8fafc',
+        tableBorderColor: '#334155',
+        isDark: true,
+        stylesheetCount: 4,
+      },
+    };
+
+    const { container } = render(
+      <Preview activeFile={mockFile} exportSettings={exportSettings} />
+    );
+
+    const css = container.querySelector('style')?.textContent || '';
+    expect(css).toContain('#38bdf8');
+    expect(css).toContain('#1e293b');
+    expect(css).toContain('#334155');
+    expect(css).toMatch(/\.preview-content h1[\s\S]*color:\s*#38bdf8/);
+    expect(css).toMatch(/\.preview-content a[\s\S]*color:\s*#38bdf8/);
+    expect(css).toMatch(/\.preview-content th[\s\S]*background-color:\s*#1e293b/);
+  });
+
+  it('injects scoped cloned CSS from the uploaded HTML into the preview', () => {
+    const mockFile: MarkdownFile = {
+      id: 'clone-css-preview',
+      name: 'trace.md',
+      content: '# Voice Turn Lifecycle\n',
+      size: 20,
+      uploadDate: new Date(),
+    };
+
+    const exportSettings: ExportSettings = {
+      outputFormat: 'html5-complete',
+      theme: 'github-dark',
+      fontFamily: 'system',
+      fontSize: 'medium',
+      includeTOC: false,
+      tocPosition: 'left-sidebar',
+      sanitizeHTML: true,
+      includeCSS: true,
+      minifyOutput: false,
+      highlightCode: false,
+      clonedStyle: {
+        sourceType: 'file',
+        sourceLabel: 'Voice Turn Lifecycle.html',
+        colors: {
+          backgroundColor: '#0E1218',
+          textColor: '#E7ECF1',
+          accentColor: '#52B4BF',
+          codeBlockBg: '#0A0E13',
+        },
+        clonedCss: 'h1 { font-size: 3rem; } .eyebrow { color: teal; }',
+        isDark: true,
+        stylesheetCount: 1,
+      },
+    };
+
+    const { container } = render(
+      <Preview activeFile={mockFile} exportSettings={exportSettings} />
+    );
+
+    const css = Array.from(container.querySelectorAll('style')).map(node => node.textContent || '').join('\n');
+    expect(css).toContain('.preview-content h1 { font-size: 3rem; }');
+    expect(css).toContain('.preview-content .eyebrow { color: teal; }');
+  });
+
+  it('keeps links and inline code readable on a dark cloned background', () => {
+    const mockFile: MarkdownFile = {
+      id: 'contrast-preview',
+      name: 'trace.md',
+      content: 'See [suggestion chips](#chips) and `logs/bond007.json`.\n',
+      size: 40,
+      uploadDate: new Date(),
+    };
+
+    const exportSettings: ExportSettings = {
+      outputFormat: 'html5-complete',
+      theme: 'github-dark',
+      fontFamily: 'system',
+      fontSize: 'medium',
+      includeTOC: false,
+      tocPosition: 'left-sidebar',
+      sanitizeHTML: true,
+      includeCSS: true,
+      minifyOutput: false,
+      highlightCode: false,
+      clonedStyle: {
+        sourceType: 'file',
+        sourceLabel: 'Voice Turn Lifecycle.html',
+        colors: {
+          backgroundColor: '#1a1a19',
+          textColor: '#f0efec',
+          accentColor: '#52B4BF',
+          codeBlockBg: '#11161D',
+        },
+        linkColor: '#0F6E7A',
+        clonedCss: 'a { color: #0F6E7A; } code { color: #1e3a5f; }',
+        isDark: true,
+        stylesheetCount: 4,
+      },
+    };
+
+    const { container } = render(
+      <Preview activeFile={mockFile} exportSettings={exportSettings} />
+    );
+
+    const preview = container.querySelector('.preview-content');
+    expect(preview?.className).toMatch(/prose-invert/);
+    const css = Array.from(container.querySelectorAll('style')).map(node => node.textContent || '').join('\n');
+    expect(css).toMatch(/contrast-safe|Readable on dark paper/i);
+    expect(css).toMatch(/\.preview-content a[\s\S]*color:\s*(#52B4BF|#f0efec)/i);
+    expect(css).toMatch(/\.preview-content :not\(pre\) > code[\s\S]*color:\s*#f0efec/i);
+  });
 });

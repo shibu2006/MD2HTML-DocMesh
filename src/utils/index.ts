@@ -9,3 +9,5 @@ export { HtmlFileManager } from './htmlFileManager';
 export { MeshManager } from './meshManager';
 export { DocMeshExportEngine } from './docMeshExportEngine';
 export { renderMermaid } from './mermaidRenderer';
+export { cloneStyleFromFile, cloneStyleFromFiles, cloneStyleFromUrl, extractClonedStyle, normalizeStyleSourceUrl, scopeClonedStylesheet } from './styleCloneEngine';
+export { getConfiguredFontFamily, getConfiguredFontSize, resolveAppearance } from './appearanceUtils';

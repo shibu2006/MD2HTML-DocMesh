@@ -547,6 +547,8 @@ function App() {
           onFileDelete={deleteFile}
           onUpload={handleFileUpload}
           onClearAll={clearAllFiles}
+          clonedStyle={exportSettings.clonedStyle}
+          onClonedStyleChange={(clonedStyle) => updateExportSettings({ clonedStyle })}
           appMode={appMode}
           onAppModeChange={switchAppMode}
           currentMesh={currentMesh}

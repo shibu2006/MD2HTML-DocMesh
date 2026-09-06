@@ -1,4 +1,5 @@
 // Component exports for MD2HTML DOCMesh
+export { CloneStyleSection } from './CloneStyleSection';
 export { Header } from './Header';
 export { LeftSidebar } from './LeftSidebar';
 export { MainContent } from './MainContent';

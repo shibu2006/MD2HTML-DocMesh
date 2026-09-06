@@ -2,8 +2,8 @@ import JSZip from 'jszip';
 import type { DocMesh, MeshNode, HtmlFile, ExportSettings } from '../types';
 import { HtmlFileNotFoundError } from '../types';
 import { MeshManager } from './meshManager';
-import { ThemeManager } from './themeManager';
 import { MarkdownEngine } from './markdownEngine';
+import { getConfiguredFontSize, resolveAppearance } from './appearanceUtils';
 import { getMermaidExportScript } from './mermaidAssets';
 
 /**
@@ -287,25 +287,27 @@ ${css}
    * zoom/pan/export toolbar.
    */
   private static generateMermaidScript(settings: ExportSettings): string {
-    const isDark = ThemeManager.isDarkTheme(settings.theme);
-    const backgroundColor = ThemeManager.getThemeStyles(settings.theme).backgroundColor;
-    return getMermaidExportScript(isDark, backgroundColor, backgroundColor);
+    const appearance = resolveAppearance(settings);
+    return getMermaidExportScript(appearance.isDark, appearance.colors.backgroundColor, appearance.colors.backgroundColor);
   }
 
   /**
    * Generate CSS for DocMesh layout and styling
    */
   private static generateMeshCSS(settings: ExportSettings): string {
-    const themeStyles = ThemeManager.getThemeStyles(settings.theme);
+    const appearance = resolveAppearance(settings);
+    const themeStyles = appearance.colors;
+    const isDark = appearance.isDark;
 
-    return `/* DocMesh Layout */
+    let css = `/* DocMesh Layout */
 body {
   margin: 0;
   padding: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-family: ${appearance.fontFamily};
+  font-size: ${getConfiguredFontSize(settings.fontSize)};
   background-color: ${themeStyles.backgroundColor};
   color: ${themeStyles.textColor};
-  line-height: 1.6;
+  line-height: ${appearance.lineHeight};
 }
 
 .docmesh-layout {
@@ -323,14 +325,15 @@ body {
   position: sticky;
   top: 0;
   height: 100vh;
-  border-right: 1px solid ${ThemeManager.isDarkTheme(settings.theme) ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'};
+  border-right: 1px solid ${isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'};
 }
 
 .docmesh-nav h2 {
   margin: 0 0 1.5rem 0;
   font-size: 1.5rem;
   color: ${themeStyles.accentColor};
-  font-weight: 700;
+  font-family: ${appearance.headingFontFamily};
+  font-weight: ${appearance.headingFontWeight};
 }
 
 .docmesh-nav-list {
@@ -354,7 +357,7 @@ body {
   padding: 0.5rem 0.75rem;
   color: ${themeStyles.textColor};
   text-decoration: none;
-  border-radius: 4px;
+  border-radius: ${appearance.borderRadius};
   border-left: 3px solid transparent;
   transition: all 0.2s;
 }
@@ -410,8 +413,9 @@ body {
 .docmesh-content h4,
 .docmesh-content h5,
 .docmesh-content h6 {
-  color: ${themeStyles.accentColor};
-  font-weight: 700;
+  color: ${appearance.headingColor};
+  font-family: ${appearance.headingFontFamily};
+  font-weight: ${appearance.headingFontWeight};
   margin-top: 2rem;
   margin-bottom: 1rem;
 }
@@ -426,7 +430,7 @@ body {
 }
 
 .docmesh-content a {
-  color: ${themeStyles.accentColor};
+  color: ${appearance.linkColor};
   text-decoration: none;
 }
 
@@ -437,7 +441,7 @@ body {
 .docmesh-content code {
   background-color: ${themeStyles.codeBlockBg};
   padding: 0.2em 0.4em;
-  border-radius: 3px;
+  border-radius: ${appearance.borderRadius};
   font-family: monospace;
   font-size: 0.9em;
 }
@@ -445,14 +449,14 @@ body {
 .docmesh-content pre {
   background-color: ${themeStyles.codeBlockBg};
   padding: 1rem;
-  border-radius: 5px;
+  border-radius: ${appearance.borderRadius};
   overflow-x: auto;
   /* Hug the code/diagram's own width instead of stretching the highlighted
      background across the full content column. Still capped at the column
      width and scrollable for content that's genuinely wider. */
   width: fit-content;
   max-width: 100%;
-  border: 1px solid ${ThemeManager.isDarkTheme(settings.theme) ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'};
+  border: 1px solid ${isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'};
 }
 
 .docmesh-content pre code {
@@ -472,9 +476,12 @@ body {
   width: 100%;
   max-width: 100%;
 }
+.docmesh-content pre.mermaid:fullscreen {
+  background-color: var(--mermaid-surface, var(--bg, #ffffff));
+}
 
 .docmesh-content pre.mermaid svg {
-  max-width: 100%;
+  max-width: none;
   height: auto;
 }
 
@@ -512,13 +519,14 @@ body {
 
 .docmesh-content th,
 .docmesh-content td {
-  border: 1px solid ${themeStyles.textColor}33;
+  border: 1px solid ${appearance.tableBorderColor};
   padding: 0.5rem;
   text-align: left;
 }
 
 .docmesh-content th {
-  background-color: ${themeStyles.codeBlockBg};
+  background-color: ${appearance.tableHeaderBg};
+  color: ${appearance.tableHeaderColor};
   font-weight: 700;
 }
 
@@ -533,13 +541,19 @@ body {
     height: auto;
     position: static;
     border-right: none;
-    border-bottom: 1px solid ${ThemeManager.isDarkTheme(settings.theme) ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'};
+    border-bottom: 1px solid ${isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'};
   }
   
   .docmesh-content {
     padding: 2rem 1rem;
   }
 }`;
+
+    if (appearance.clonedCss) {
+      css += `\n\n/* Cloned source styles */\n${appearance.clonedCss}\n`;
+    }
+
+    return css;
   }
 
   /**

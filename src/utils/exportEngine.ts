@@ -2,6 +2,7 @@ import JSZip from 'jszip';
 import type { MarkdownFile, ExportSettings, TOCEntry } from '../types';
 import { markdownEngine, MarkdownEngine } from './markdownEngine';
 import { ThemeManager } from './themeManager';
+import { getConfiguredFontSize, resolveAppearance } from './appearanceUtils';
 import { getMermaidExportScript } from './mermaidAssets';
 
 /**
@@ -95,10 +96,11 @@ export class ExportEngine {
     // The light/dark toggle + collapsible TOC controls are only meaningful when
     // we ship our stylesheet (includeCSS), which defines the theme variables.
     const themed = settings.includeCSS;
-    const selectedDark = ThemeManager.isDarkTheme(settings.theme);
+    const hasClonedStyle = Boolean(settings.clonedStyle);
+    const selectedDark = resolveAppearance(settings).isDark;
     const htmlClass = themed && selectedDark ? ' class="dark"' : '';
-    const headInit = themed ? `\n  ${this.generateThemeInitScript(selectedDark)}` : '';
-    const themeToggle = themed ? `${this.generateThemeToggleButton()}\n` : '';
+    const headInit = themed && !hasClonedStyle ? `\n  ${this.generateThemeInitScript(selectedDark)}` : '';
+    const themeToggle = themed && !hasClonedStyle ? `${this.generateThemeToggleButton()}\n` : '';
     const controlsScript = themed ? `\n${this.generateControlsScript()}` : '';
 
     return `<!DOCTYPE html>
@@ -148,10 +150,11 @@ ${themeToggle}${content}${mermaidScript}${controlsScript}
    * exported HTML, and re-themes them when the page light/dark mode changes.
    */
   private static generateMermaidScript(settings: ExportSettings): string {
-    const selectedDark = ThemeManager.isDarkTheme(settings.theme);
-    const selected = ThemeManager.getThemeStyles(settings.theme);
-    const light = selectedDark ? ThemeManager.getThemeStyles('github-light') : selected;
-    const dark = selectedDark ? selected : ThemeManager.getThemeStyles('github-dark');
+    const appearance = resolveAppearance(settings);
+    const selectedDark = appearance.isDark;
+    const selected = appearance.colors;
+    const light = settings.clonedStyle || !selectedDark ? selected : ThemeManager.getThemeStyles('github-light');
+    const dark = settings.clonedStyle || selectedDark ? selected : ThemeManager.getThemeStyles('github-dark');
     return getMermaidExportScript(selectedDark, light.backgroundColor, dark.backgroundColor);
   }
 
@@ -208,17 +211,23 @@ ${themeToggle}${content}${mermaidScript}${controlsScript}
    * one of the two modes (its counterpart defaults to github-light/dark).
    */
   private static generateCSS(settings: ExportSettings): string {
-    const selectedDark = ThemeManager.isDarkTheme(settings.theme);
-    const selected = ThemeManager.getThemeStyles(settings.theme);
-    const light = selectedDark ? ThemeManager.getThemeStyles('github-light') : selected;
-    const dark = selectedDark ? selected : ThemeManager.getThemeStyles('github-dark');
+    const appearance = resolveAppearance(settings);
+    const selectedDark = appearance.isDark;
+    const selected = appearance.colors;
+    const light = settings.clonedStyle || !selectedDark ? selected : ThemeManager.getThemeStyles('github-light');
+    const dark = settings.clonedStyle || selectedDark ? selected : ThemeManager.getThemeStyles('github-dark');
     const hl = settings.highlightCode;
 
     let css = `:root {
   --bg: ${light.backgroundColor};
   --text: ${light.textColor};
   --accent: ${light.accentColor};
+  --heading: ${appearance.headingColor};
+  --link: ${appearance.linkColor};
   --code-bg: ${light.codeBlockBg};
+  --table-head: ${appearance.tableHeaderBg};
+  --table-head-text: ${appearance.tableHeaderColor};
+  --table-border: ${appearance.tableBorderColor};
   --border: rgba(0, 0, 0, 0.1);
   --border-soft: rgba(0, 0, 0, 0.2);
   --accent-soft: ${light.accentColor}20;
@@ -229,7 +238,12 @@ ${themeToggle}${content}${mermaidScript}${controlsScript}
   --bg: ${dark.backgroundColor};
   --text: ${dark.textColor};
   --accent: ${dark.accentColor};
+  --heading: ${appearance.headingColor};
+  --link: ${appearance.linkColor};
   --code-bg: ${dark.codeBlockBg};
+  --table-head: ${appearance.tableHeaderBg};
+  --table-head-text: ${appearance.tableHeaderColor};
+  --table-border: ${appearance.tableBorderColor};
   --border: rgba(255, 255, 255, 0.1);
   --border-soft: rgba(255, 255, 255, 0.2);
   --accent-soft: ${dark.accentColor}33;
@@ -239,9 +253,9 @@ ${themeToggle}${content}${mermaidScript}${controlsScript}
 body {
   background-color: var(--bg);
   color: var(--text);
-  font-family: ${this.getFontFamily(settings.fontFamily)};
-  font-size: ${this.getFontSize(settings.fontSize)};
-  line-height: 1.6;
+  font-family: ${appearance.fontFamily};
+  font-size: ${getConfiguredFontSize(settings.fontSize)};
+  line-height: ${appearance.lineHeight};
   margin: 0;
   padding: 2rem;
   transition: background-color 0.2s ease, color 0.2s ease;
@@ -260,8 +274,9 @@ body > *:not(.toc-layout) {
 }
 
 h1, h2, h3, h4, h5, h6 {
-  color: var(--accent);
-  font-weight: 700;
+  color: var(--heading);
+  font-family: ${appearance.headingFontFamily};
+  font-weight: ${appearance.headingFontWeight};
   margin-top: 1.5em;
   margin-bottom: 0.5em;
 }
@@ -279,7 +294,7 @@ h3 {
 }
 
 a {
-  color: var(--accent);
+  color: var(--link);
   text-decoration: none;
 }
 
@@ -288,7 +303,7 @@ a:hover {
 }
 
 strong, b {
-  color: var(--accent);
+  color: var(--text);
   font-weight: 700;
 }
 
@@ -309,7 +324,7 @@ li {
 }
 
 li::marker {
-  color: var(--accent);
+  color: var(--link);
   font-weight: 700;
 }
 
@@ -324,7 +339,7 @@ code {
 pre {
   background-color: var(--code-bg);
   padding: 1rem;
-  border-radius: 5px;
+  border-radius: ${appearance.borderRadius};
   overflow-x: auto;
   /* Hug the code/diagram's own width instead of stretching the highlighted
      background across the full (wide) reading column. Still capped at the
@@ -351,9 +366,12 @@ pre.mermaid {
   width: 100%;
   max-width: 100%;
 }
+pre.mermaid:fullscreen {
+  background-color: var(--mermaid-surface, var(--bg, #ffffff));
+}
 
 pre.mermaid svg {
-  max-width: 100%;
+  max-width: none;
   height: auto;
 }
 
@@ -381,13 +399,14 @@ table {
 }
 
 th, td {
-  border: 1px solid var(--border-soft);
+  border: 1px solid var(--table-border);
   padding: 0.5rem;
   text-align: left;
 }
 
 th {
-  background-color: var(--code-bg);
+  background-color: var(--table-head);
+  color: var(--table-head-text);
 }
 
 /* Theme toggle button */
@@ -471,7 +490,7 @@ th {
 .table-of-contents {
   background-color: var(--code-bg);
   padding: 1rem;
-  border-radius: 5px;
+  border-radius: ${appearance.borderRadius};
   margin-bottom: 2rem;
 }
 
@@ -520,7 +539,7 @@ th {
   align-self: flex-start;
   background-color: var(--code-bg);
   padding: 1.5rem;
-  border-radius: 5px;
+  border-radius: ${appearance.borderRadius};
   max-height: calc(100vh - 4rem);
   overflow-y: auto;
   transition: width 0.2s ease, padding 0.2s ease;
@@ -594,6 +613,21 @@ th {
       css += this.getSyntaxRules();
     }
 
+    if (appearance.clonedCss) {
+      css += `\n\n/* Cloned source styles */\n${appearance.clonedCss}\n`;
+    }
+
+    if (appearance.isDark) {
+      css += `
+/* Readable on dark paper */
+a { color: var(--link) !important; }
+:not(pre) > code {
+  color: var(--text) !important;
+  background-color: var(--code-bg) !important;
+}
+`;
+    }
+
     return css;
   }
 
@@ -650,43 +684,6 @@ th {
 .hljs-function { color: var(--hljs-function); }
 `;
   }
-
-  /**
-   * Get font family CSS value
-   */
-  private static getFontFamily(fontFamily: ExportSettings['fontFamily']): string {
-    switch (fontFamily) {
-      case 'system':
-        return '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
-      case 'inter':
-        return 'Inter, -apple-system, BlinkMacSystemFont, sans-serif';
-      case 'roboto':
-        return 'Roboto, -apple-system, BlinkMacSystemFont, sans-serif';
-      case 'monospace':
-        return '"Courier New", Courier, monospace';
-      default:
-        return '-apple-system, BlinkMacSystemFont, sans-serif';
-    }
-  }
-
-  /**
-   * Get font size CSS value
-   */
-  private static getFontSize(fontSize: ExportSettings['fontSize']): string {
-    switch (fontSize) {
-      case 'small':
-        return '14px';
-      case 'medium':
-        return '16px';
-      case 'large':
-        return '18px';
-      case 'extra-large':
-        return '20px';
-      default:
-        return '16px';
-    }
-  }
-
 
 
   /**
