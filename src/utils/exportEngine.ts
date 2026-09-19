@@ -687,37 +687,73 @@ a { color: var(--link) !important; }
 
 
   /**
-   * Minify HTML by removing unnecessary whitespace
+   * Tags that establish their own block box. Whitespace sitting *between* two
+   * of these is insignificant and can be dropped. Whitespace around inline
+   * elements (strong, em, a, code, span, ...) is significant — dropping it
+   * glues neighbouring words together, so those boundaries are left alone.
+   */
+  private static readonly BLOCK_LEVEL_TAGS = [
+    'html', 'head', 'body', 'meta', 'link', 'title', 'style', 'script',
+    'div', 'p', 'hr', 'br',
+    'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+    'ul', 'ol', 'li', 'dl', 'dt', 'dd',
+    'table', 'thead', 'tbody', 'tfoot', 'tr', 'th', 'td', 'caption', 'colgroup', 'col',
+    'header', 'footer', 'nav', 'section', 'article', 'aside', 'main',
+    'blockquote', 'pre', 'figure', 'figcaption',
+    'form', 'fieldset', 'legend'
+  ].join('|');
+
+  /**
+   * Minify HTML by collapsing insignificant whitespace.
+   *
+   * Whitespace in HTML text flow is *significant*: a run of whitespace renders
+   * as a single space and separates words. So runs are collapsed to one space
+   * rather than removed — removing them merges words across soft-wrapped source
+   * lines ("brown\nfox" -> "brownfox") and across inline element boundaries
+   * ("</strong>\nand" -> "</strong>and").
    */
   static minify(html: string): string {
-    // Preserve content within pre, code, script, and style tags
-    const preCodeBlocks: string[] = [];
+    // Preserve content whose internal whitespace must survive verbatim.
+    const preservedBlocks: string[] = [];
     let preservedHTML = html;
 
     const preserve = (regex: RegExp) => {
       preservedHTML = preservedHTML.replace(regex, (match) => {
-        const index = preCodeBlocks.length;
-        preCodeBlocks.push(match);
+        const index = preservedBlocks.length;
+        preservedBlocks.push(match);
         return `___PRESERVED_BLOCK_${index}___`;
       });
     };
 
-    // Extract and preserve blocks whose internal whitespace is significant.
-    // CSS in <style> is intentionally left to be minified (whitespace there is
-    // insignificant), but <pre> and <script> content must be kept verbatim.
+    // <pre> (which swallows any nested <code>) and <script> bodies are kept
+    // byte for byte. Inline <code> is preserved too so runs of spaces inside a
+    // code span aren't rewritten. CSS in <style> is intentionally left to be
+    // minified, since whitespace there is insignificant.
     preserve(/<pre[^>]*>[\s\S]*?<\/pre>/gi);
     preserve(/<script[^>]*>[\s\S]*?<\/script>/gi);
+    preserve(/<code[^>]*>[\s\S]*?<\/code>/gi);
 
-    // Remove newlines and extra spaces
+    const blockBoundary = new RegExp(
+      `(<\\/?(?:${this.BLOCK_LEVEL_TAGS})\\b[^>]*>)\\s+(?=<\\/?(?:${this.BLOCK_LEVEL_TAGS})\\b)`,
+      'gi'
+    );
+
     preservedHTML = preservedHTML
-      .replace(/\n/g, '')
-      .replace(/\s{2,}/g, ' ')
-      .replace(/>\s+</g, '><')
+      // Collapse every whitespace run (newlines included) to a single space so
+      // word boundaries are kept.
+      .replace(/\s+/g, ' ')
+      // Then drop the space between adjacent block-level tags, where it has no
+      // rendered effect. The right-hand tag is matched with a lookahead so it
+      // stays available as the left-hand tag of the next boundary, letting
+      // chains like `</p> <div> <p>` collapse in a single pass.
+      .replace(blockBoundary, '$1')
       .trim();
 
-    // Restore preserved blocks
-    preCodeBlocks.forEach((block, index) => {
-      preservedHTML = preservedHTML.replace(`___PRESERVED_BLOCK_${index}___`, block);
+    // Restore preserved blocks. The replacement is a function so `$&`, `$1`
+    // and friends occurring inside the restored content aren't treated as
+    // replacement patterns.
+    preservedBlocks.forEach((block, index) => {
+      preservedHTML = preservedHTML.replace(`___PRESERVED_BLOCK_${index}___`, () => block);
     });
 
     return preservedHTML;
