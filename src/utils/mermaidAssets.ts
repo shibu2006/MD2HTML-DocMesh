@@ -275,7 +275,12 @@ const BG_LIGHT = ${JSON.stringify(bgLight)};
 const BG_DARK = ${JSON.stringify(bgDark)};
 ${MERMAID_RUNTIME_JS}
 async function renderAllMermaid(dark) {
-  mermaid.initialize({ startOnLoad: false, theme: dark ? 'dark' : 'default', securityLevel: 'loose' });
+  // htmlLabels:false keeps labels as native SVG text so they wrap instead of
+  // being clipped. HTML labels live in a <foreignObject> sized to a label div
+  // that mermaid clamps to wrappingWidth with white-space:nowrap; lines wider
+  // than that clamp overflow the box, and a foreignObject clips its overflow.
+  // Must match the live preview in mermaidRenderer.ts — see the note there.
+  mermaid.initialize({ startOnLoad: false, theme: dark ? 'dark' : 'default', securityLevel: 'loose', htmlLabels: false, flowchart: { wrappingWidth: 360 } });
   const blocks = Array.from(document.querySelectorAll('pre.mermaid'));
   for (let i = 0; i < blocks.length; i++) {
     const node = blocks[i];

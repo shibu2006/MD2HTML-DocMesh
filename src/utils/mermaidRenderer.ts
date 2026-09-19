@@ -77,6 +77,24 @@ export async function renderMermaid(container: HTMLElement | null, theme: ThemeN
     startOnLoad: false,
     theme: isDark ? 'dark' : 'default',
     securityLevel: 'loose',
+    // Render labels as native SVG <text>/<tspan> rather than HTML inside a
+    // <foreignObject>, so long labels wrap instead of being clipped.
+    //
+    // With HTML labels, mermaid's addHtmlSpan() constrains the label <div> to
+    // `max-width: flowchart.wrappingWidth` (200px) with `white-space: nowrap`,
+    // then sizes the <foreignObject> to that div's getBoundingClientRect().
+    // A label with hard <br/> breaks therefore reports a rect clamped near
+    // 200px while its lines actually render wider — and a foreignObject clips
+    // its overflow, shearing every line off at the same x, mid-word.
+    //
+    // SVG text takes the other branch in labelHelper(): lines are measured with
+    // getComputedTextLength()/getBBox() in the same context they render in, and
+    // the node sizes to its widest line with no clipping box involved.
+    htmlLabels: false,
+    // Raise the line-break threshold from mermaid's 200px default so authored
+    // <br/> lines are not re-wrapped into very narrow columns. Text still wraps
+    // at word boundaries beyond this width; it is never clipped.
+    flowchart: { wrappingWidth: 360 },
   });
 
   for (const node of nodes) {
