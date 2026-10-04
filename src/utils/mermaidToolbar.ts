@@ -203,6 +203,17 @@ export function enhanceMermaidDiagram(pre: HTMLElement, options: EnhanceOptions)
     }
   };
 
+  // The viewport's available width changes whenever the surrounding layout
+  // changes shape (e.g. the left TOC/nav sidebar is collapsed or expanded).
+  // apply() reads viewport.clientWidth to compute the "fit the column" base
+  // scale, but nothing re-ran it after such a layout shift, so the diagram
+  // stayed sized for the old, narrower column with blank space beside it.
+  // Watch the viewport itself so any width change re-fits the diagram.
+  if (typeof ResizeObserver !== 'undefined') {
+    const resizeObserver = new ResizeObserver(() => apply());
+    resizeObserver.observe(viewport);
+  }
+
   const zoomAt = (factor: number, originX: number, originY: number) => {
     const newScale = clamp(scale * factor, MIN_SCALE, MAX_SCALE);
     // Keep the point under (originX, originY) fixed while scaling.

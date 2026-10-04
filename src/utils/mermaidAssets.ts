@@ -191,6 +191,15 @@ function __enhanceMermaid(pre, isDark, bg){
       viewport.style.height = '';
     }
   };
+  // Re-fit the diagram whenever the viewport's available width changes,
+  // e.g. when the page's left nav/TOC sidebar is collapsed or expanded.
+  // Without this the diagram keeps the stale "fit the old column width"
+  // size and leaves blank space where the column grew into.
+  if (typeof ResizeObserver !== 'undefined') {
+    const resizeObserver = new ResizeObserver(() => apply());
+    resizeObserver.observe(viewport);
+  }
+
   const zoomAt = (f, ox, oy) => {
     const ns = clamp(scale * f, MIN_SCALE, MAX_SCALE);
     tx = ox - ((ox - tx) / scale) * ns;
